@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 module cop_ise #( parameter [6:0] CUSOPCODE = 7'b0001011) // custom 0 is used by default
 (
     cop_clk,
@@ -47,30 +46,37 @@ end
 wire doAddi = (funct[2:0] == 3'b000);
 wire doMult = (funct[2:0] == 3'b001);
 wire rdrand = (funct[2:0] == 3'b010);
+wire rdhigh = (funct[2:0] == 3'b111);
 
-wire [31:0] addi;
-wire [31:0] mult;
-wire [31:0] arthres;
-wire [31:0] randnum; 
+wire [33:0] addi;
+wire [63:0] mult;
+wire [63:0] arthres;
+wire [63:0] randnum; 
 
 //data-path ==========================================
-reg trn_gen;
+reg         trn_gen;
 wire        trn_rdy;
-trng_reg #(.W(32), .O(3)) trng_ins (
+trng_reg #(.W(64), .O(3)) trng_ins (
     .clk(cop_clk),
     .rst(cop_rst),
     .gen(trn_gen),
     .rdy(trn_rdy),
     .rdn(randnum) );
-
-reg [31:0] 	artran; //random number for arith. calculation masking
-reg [1:0]   msk_ctl;
-wire [31:0] op2mask;
-assign op2mask = (msk_ctl==2'b00)? (op2 ^ artran) : (msk_ctl==2'b01)?(op2 & artran) : (msk_ctl==2'b10)?(~op2 & artran) : 32'd0;
+    
+reg  [63:0]  artran; //random number for arith. calculation masking
+reg  [31:0]  ip11, ip12, ip21, ip22;
+wire [32:0]  op1mask, op2mask;
+//reg  [1:0]   msk_ctl;
+//assign op2mask = (msk_ctl==2'b00)? (op2 ^ artran) : (msk_ctl==2'b01)?(op2 & artran) : (msk_ctl==2'b10)?(~op2 & artran) : 32'd0;
 //assign op1mask = (msk_ctl)? (op1 & artran) : (op1 & ~artran);
-assign addi = op1 + op2mask;
-assign mult = op1 * op2mask;
-assign arthres=(doAddi)?addi:(doMult)?mult:32'd0;
+wire [31:0] r0 = {artran[62:32],1'b0};
+wire [31:0] r1 = {artran[30: 0],1'b0};
+
+assign op1mask = ip11 + ip12;
+assign op2mask = ip21 + ip22;
+assign addi    = op1mask + op2mask;
+assign mult    = op1mask * op2mask;
+assign arthres=(doAddi)?{{30{1'b0}},addi}:(doMult)?mult:32'd0;
 //====================================================
 
 //control-unit =======================================
@@ -80,11 +86,11 @@ digraph G {
     RDNGEN    [label="RDNGEN/trn_gen"];
     RDNFIN    [label="RDNFIN/~trn_gen; resreg=randnum; resval"];
     ARTCAL1   [label="ARTCAL1/trn_gen"];
-    ARTCAL2   [label="ARTCAL2/~trn_gen; artran=randnum; msk_ctl=00"];
+    ARTCAL2   [label="ARTCAL2/~trn_gen; artran=randnum"];
     ARTCAL2T  [label="ARTCAL2T"];
-    ARTCAL3   [label="ARTCAL3/resreg=arthres; msk_ctl=01"];
+    ARTCAL3   [label="ARTCAL3/resreg=arthres"];
     ARTCAL3T  [label="ARTCAL3T"];
-    ARTCAL4   [label="ARTCAL4/resreg+=arthres; msk_ctl=10"];
+    ARTCAL4   [label="ARTCAL4/resreg-=arthres"];
     ARTCAL4T  [label="ARTCAL4T"];
     ARTCAL5   [label="ARTCAL5/resreg-=arthres;"];
     ARTCAL5T  [label="ARTCAL5T"];
@@ -102,17 +108,16 @@ digraph G {
     ARTCAL2T-> ARTCAL3[label="ranexp"]; ARTCAL2T ->ARTCAL2T;
     ARTCAL3 -> ARTCAL3T;
     ARTCAL3T-> ARTCAL4[label="ranexp"]; ARTCAL3T ->ARTCAL3T;
-    ARTCAL4 -> ARTCAL4T;
+    ARTCAL4 -> ARTCAL4T[label="domult"];ARTCAL4 -> ARTCAL5T[label="doaddi"];
     ARTCAL4T-> ARTCAL5[label="ranexp"]; ARTCAL4T ->ARTCAL4T;
     ARTCAL5 -> ARTCAL5T;
     ARTCAL5T-> ARTFIN[label="ranexp"]; ARTCAL5T ->ARTCAL5T;
     ARTFIN -> IDLE[];
 }
-}
 */
 wire       ranexp;  //random timing 
 
-reg [31:0] resreg;
+reg [63:0] resreg;
 reg        resval;
 
 localparam IDLE    = 4'b0000;
@@ -129,6 +134,8 @@ localparam ARTCAL5 = 4'b1010;
 localparam ARTCAL5T= 4'b1011;
 localparam ARTFIN  = 4'b1100;
 
+localparam RDHIGH  = 4'b1101;
+
 reg [3:0] ctl_state;
 always @(posedge cop_clk)
 	if (cop_rst) begin
@@ -137,21 +144,28 @@ always @(posedge cop_clk)
 		resreg  <= 32'd0;
 		resval  <= 1'b0;
 		trn_gen <= 1'b0;
-        msk_ctl <= 2'b00;
+//        msk_ctl <= 2'b00;
 		end
 	else
 		case (ctl_state)
         IDLE : begin
         	if (op_valid & rdrand)
             	ctl_state <= RDNGEN;
+            else if (op_valid & rdhigh)
+                ctl_state <= RDHIGH;
             else if (op_valid & (doAddi|doMult))
                 ctl_state <= ARTCAL1;
-            else
+            else 
                 ctl_state <= IDLE;
-            resreg  <= 32'd0;
+//            resreg  <= 64'd0;
 			resval  <= 1'b0;
 			trn_gen <= 1'b0;
-			msk_ctl <= 2'b00;
+//			msk_ctl <= 2'b00;
+            end
+        RDHIGH : begin
+            ctl_state    <= IDLE;
+            resreg[31:0] <= resreg[63:32];
+            resval       <= 1'b1;
             end
 		RDNGEN : begin
             ctl_state <= (trn_rdy)? RDNFIN : RDNGEN;
@@ -171,7 +185,7 @@ always @(posedge cop_clk)
             ctl_state <= ARTCAL2T;
             trn_gen <= 1'b0;
             artran  <= randnum;
-            msk_ctl <= 2'b00;            
+//            msk_ctl <= 2'b00;            
             end
         ARTCAL2T: begin
             ctl_state <= (ranexp)? ARTCAL3 : ARTCAL2T;
@@ -179,15 +193,15 @@ always @(posedge cop_clk)
         ARTCAL3: begin
             ctl_state <= ARTCAL3T;
 			resreg  <= arthres;
-			msk_ctl <= 2'b01;
+//			msk_ctl <= 2'b01;
 			end
         ARTCAL3T: begin
             ctl_state <= (ranexp)? ARTCAL4 : ARTCAL3T;
             end   			
         ARTCAL4: begin
-            ctl_state <= ARTCAL4T;
-            resreg  <= resreg + arthres;
-            msk_ctl <= 2'b10;
+            ctl_state <= (doMult)? ARTCAL4T: ARTCAL5T;
+            resreg  <= resreg - arthres;
+//            msk_ctl <= 2'b10;
             end		
         ARTCAL4T: begin
             ctl_state <= (ranexp)? ARTCAL5 : ARTCAL4T;
@@ -209,10 +223,29 @@ always @(posedge cop_clk)
 	   	    resreg  <= 32'd0;
 		    resval  <= 1'b0;
             trn_gen <= 1'b0;
-            msk_ctl <= 2'b00;
+//            msk_ctl <= 2'b00;
             end
          endcase
-         
+
+always @(posedge cop_clk)
+	if (cop_rst) begin
+	   ip11 <= 33'd0;   ip12 <= 33'd0;
+	   ip21 <= 33'd0;   ip22 <= 33'd0;
+	   end
+	else if (ctl_state == ARTCAL2T) begin
+	   ip11 <= op1;     ip12 <= r0;
+	   ip21 <= op2;     ip22 <= r1;
+	   end
+	else if (ctl_state == ARTCAL3T) begin
+       ip11 <= (doMult)? op1 : (r0>>1);
+       ip12 <= (r0>>1);
+       ip21 <= (r1>>1);     
+       ip22 <= (r1>>1);
+       end            
+    else if (ctl_state == ARTCAL4T) begin
+	   ip11 <= r0>>1;     ip12 <= r0>>1;
+       ip21 <= op2;       ip22 <= r1>>1;
+       end   
 // time execution randomising ========================
 wire [3:0] timopt = funct[6:3];
 wire       timena = timopt[3]; // time execution randomising is enable when timopt[3] (funct[6]) is set.
@@ -245,9 +278,10 @@ assign ranexp = (timcnt == 8'h00);
 
 assign cop_ready = resval;
 
-assign cop_rd = resreg;
+assign cop_rd = resreg[31:0];
 assign cop_wr = resval;
 
 endmodule
+
 
 
