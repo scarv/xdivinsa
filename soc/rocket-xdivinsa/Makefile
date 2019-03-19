@@ -14,6 +14,7 @@ endif
 XDI_HOME ?= $(abspath ../../)
 CORE      = rocket-xdivinsa
 TARGET   ?= sakura-x
+IMPL     ?= d1
 
 extr_dir ?= $(abspath ../../external)
 work_dir ?= $(abspath ../../work)
@@ -40,7 +41,9 @@ rtl_sources = \
 	$(work_dir)/$(project_name)/rtl_sources/rocketcore.v \
 	$(work_dir)/$(project_name)/rtl_sources/plusarg_reader.v \
 	$(work_dir)/$(project_name)/rtl_sources/AsyncResetReg.v \
-	$(work_dir)/$(project_name)/rtl_sources/cop_ise.v
+	$(work_dir)/$(project_name)/rtl_sources/cop_ise.v \
+	$(work_dir)/$(project_name)/rtl_sources/es_trng.v \
+	$(work_dir)/$(project_name)/rtl_sources/trng_reg.v \
 
 prog_mem = $(work_dir)/$(project_name)/prog-bin/prog.mem
 
@@ -66,7 +69,8 @@ verilog:
 	cp -f $(coregen_dir)/$(ROCKET).$(CONFIG).behav_srams.v        $(work_dir)/$(project_name)/rtl_sources/memcore.v
 	cp -f $(core_dir)/src/main/resources/vsrc/plusarg_reader.v    $(work_dir)/$(project_name)/rtl_sources/plusarg_reader.v
 	cp -f $(core_dir)/src/main/resources/vsrc/AsyncResetReg.v     $(work_dir)/$(project_name)/rtl_sources/AsyncResetReg.v
-	cat   $(XDI_HOME)/rtl/*.v >                                  $(work_dir)/$(project_name)/rtl_sources/cop_ise.v	
+	cp -f $(XDI_HOME)/rtl/*.v                                     $(work_dir)/$(project_name)/rtl_sources/
+	cp -f $(XDI_HOME)/rtl/xdivinsa.v.$(IMPL)	                  $(work_dir)/$(project_name)/rtl_sources/cop_ise.v	
 .PHONY: verilog
 
 #--------------------------------------------------------------------

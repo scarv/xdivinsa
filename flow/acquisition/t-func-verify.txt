@@ -1,0 +1,10 @@
+
+# Make sure that everything is connected and working
+connection_test
+connection_info
+
+# Call t-function
+t_func_verf
+
+disconnect
+exit

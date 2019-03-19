@@ -1,0 +1,3 @@
+# Evaluate the ttest sets
+evaluate_ttest $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs $BSX_HOME/work/tt.svg
+exit

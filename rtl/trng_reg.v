@@ -14,7 +14,8 @@ input           gen;
 output          rdy;
 output [W-1:0]  rdn;
 
-reg [W-1:0] rdn;
+//reg [W-1:0] rdn;
+wire   [W-1:0] rdn;
 reg    rdy;
 reg    trn_gen;
 reg    trn_gen_done;
@@ -32,16 +33,17 @@ reg    trn_gen_done;
   "config" : { "hscale" : 1 }
 }
 */
+assign rdn = trn_reg;
 always@(posedge clk) begin
     if (rst) begin
-		rdn		<= {W{1'b0}};
+//		rdn		<= {W{1'b0}};
 		rdy	    <= 1'b0;
 		trn_gen <= 1'b0;	
 		end
     else if (gen) begin
 		if (~trn_gen) begin			 //new random was ready
 			rdy 	<= 1'b1;
-			rdn		<= trn_reg;		 //get generated number
+//			rdn		<= trn_reg;		 //get generated number
 			trn_gen <= 1'b1;  		 //gen new number
 			end
 		else begin // else is generating, it has to wait	

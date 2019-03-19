@@ -39,7 +39,10 @@ set files [list \
 			[file normalize $work_dir/$project_name/rtl_sources/rocketcore.v] \
 			[file normalize $work_dir/$project_name/rtl_sources/memcore.v] \
 			[file normalize $work_dir/$project_name/rtl_sources/cop_ise.v] \
+			[file normalize $work_dir/$project_name/rtl_sources/es_trng.v] \
+			[file normalize $work_dir/$project_name/rtl_sources/trng_reg.v] \
               ]
+
 add_files -norecurse -fileset [get_filesets sources_1] $files
 
 set_property verilog_define [list FPGA Differential_clock_capable_pin] [get_filesets sources_1] 
