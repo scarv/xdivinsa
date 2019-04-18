@@ -13,10 +13,38 @@ typedef uint64_t dlimb_t;
   r_0 =       ( limb_t )( __t >> 0                    );      \
   r_1 =       ( limb_t )( __t >> (8*sizeof( limb_t )) );      \
 }
-#ifdef XDIVINSA
+#ifdef XDIVINSA_T0
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
     SET_TRIG
 	CiMult_f1(*r_1, *r_0, e, f);
+//  dlimb_t   t;
+//	CiMult_f2(t, e, f);
+//  *r_0 =   ( limb_t )( t >> 0                    );      
+//  *r_1 =   ( limb_t )( t >> (8*sizeof( limb_t )) );      
+    CLR_TRIG
+}
+#elif XDIVINSA_T1
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1t1(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_T2
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1t2(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_T3
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1t3(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_T4
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1t4(*r_1, *r_0, e, f);   
     CLR_TRIG
 }
 #else

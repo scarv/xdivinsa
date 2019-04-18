@@ -3,7 +3,7 @@ hal_dir  ?= $(abspath ../../soc/$(CORE)/hal)
 sass_dir ?= $(abspath ../../external/fw-acquisition)
 
 CORE ?= rocket-xdivinsa
-CONF ?= -DXDIVINSA
+XD ?= -DXDIVINSA_T0
 
 CC=$(RISCV)/bin/riscv64-unknown-elf-gcc
 AS=$(RISCV)/bin/riscv64-unknown-elf-as
@@ -32,7 +32,7 @@ CCFLAGS+=-Os -O2 -march=rv32im -mabi=ilp32 -nostartfiles -nostdlib -fpie -Wl,-T$
 
 $(OUTPUT) : $(SRCS)
 	mkdir -p $(work_dir)
-	$(CC) $(CCFLAGS) $(INC_DIRS) $(CONF) -o $@ $^
+	$(CC) $(CCFLAGS) $(INC_DIRS) $(XD) -o $@ $^
 
 $(OUTBIN): $(OUTPUT)
 	$(OBJCOPY) -O binary $< $@

@@ -12,7 +12,7 @@ $(error Please set environment for Sakura-X board support package)
 endif
 
 XDI_HOME ?= $(abspath ../../)
-CORE      = rocket-xdivinsa
+CORE      = rocket-xdivinsa-25M
 TARGET   ?= sakura-x
 IMPL     ?= d1
 

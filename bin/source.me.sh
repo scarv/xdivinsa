@@ -26,7 +26,7 @@ if [ -z ${LIBSCARV} ]; then
 fi
 
 
-export CORE=rocket-xdivinsa
+export CORE=rocket-xdivinsa-25M
 export TARGET=sakura-x
 
 echo "XDI_HOME          = $XDI_HOME"

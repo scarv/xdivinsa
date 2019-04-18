@@ -1,3 +1,4 @@
 # Evaluate the ttest sets
-evaluate_ttest $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs $BSX_HOME/work/tt.svg
+t_func_ttest_eval 20000 680 1070 EA $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_set1_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_set2_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_EA_20000.svg $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t0_nonzero/tt_set1_50000.trs
+#t_func_ttest_eval 50000 680 1500 None $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/tt_set1_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/#tt_set2_50000.trs $BSX_HOME/work/tt_10000.svg
 exit

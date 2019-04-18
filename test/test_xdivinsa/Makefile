@@ -1,4 +1,3 @@
-
 work_dir ?= $(abspath ../../work/test_xdivinsa)
 hal_dir  ?= $(abspath ../../soc/$(CORE)/hal)
 
@@ -10,8 +9,9 @@ LD=$(RISCV)/bin/riscv64-unknown-elf-ld
 OBJCOPY=$(RISCV)/bin/riscv64-unknown-elf-objcopy
 OBJDUMP=$(RISCV)/bin/riscv64-unknown-elf-objdump
 
-INC_DIRS = -Icilib -I$(hal_dir)
+INC_DIRS = -I../common -I$(hal_dir)
 SRCS = test_xdivinsa.c \
+       ../common/common.c \
        $(hal_dir)/boot.S \
 
 OUTHEX  = $(work_dir)/test_xdivinsa-$(CORE).hex
@@ -25,7 +25,7 @@ CCFLAGS+=-Os -O2 -march=rv32im -mabi=ilp32 -ffast-math -nostartfiles -nostdlib -
 
 $(OUTPUT) : $(SRCS)
 	mkdir -p $(work_dir)
-	$(CC) $(CCFLAGS) $(INC_DIRS) -D$(firstword $(subst -, ,$(CORE))) -D$(lastword $(subst -, ,$(CORE))) -o $@ $^
+	$(CC) $(CCFLAGS) $(INC_DIRS) -D$(firstword $(subst -, ,$(CORE))) -D$(word 2, $(subst -, ,$(CORE))) -o $@ $^
 	
 $(OUTBIN): $(OUTPUT)
 	$(OBJCOPY) -O binary $< $@

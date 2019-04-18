@@ -11,20 +11,24 @@ scope_open
 scope_cfg_trigger B 100 1.0 Rising
 
 # Configure the scope capture channels
-scope_cfg_channel A 20e-3 DC
+scope_cfg_channel A 50e-3 DC
 scope_cfg_channel B 5     DC
 
 # Set the channel which the power traces come from
 scope_cfg_trace_channel A
 
-# Get the best sampling setup
-#find_sample_rate 50e6 0.5 B
-# Only capture the first 10% of samples per trace
-#factor_samples_per_trace 0.17
+# Capture the trace sets for t-test on xdivinsa
+#    for 50M  sampling rate 125MHz, 700 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets
+#t_func_ttest_acq 125e6 700 8 1000 $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs
+#    for 25M  sampling rate 125MHz, 1700 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets 
+#t_func_ttest_acq 125e6 1700 8 100 $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs
 
-# Capture the trace sets
-#   sampling rate 125MHz, 250 samples per traces, resolution of 8 bits, 200 traces, 2 trace sets
-t_func_ttest_acq 125e6 500 8 10000 $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs
+# Capture the trace sets for t-test on modexp 
+#    for 50M  sampling rate 125MHz, 270000 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets
+#t_func_ttest_acq 125e6 700 8 1000 $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs
+#    for 25M  sampling rate 125MHz, 770000 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets 
+t_func_ttest_acq 125e6 770000 8 1000 $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs
+
 
 # Evaluate the ttest sets
 evaluate_ttest $BSX_HOME/work/tt_set1.trs $BSX_HOME/work/tt_set2.trs $BSX_HOME/work/tt.svg

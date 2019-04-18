@@ -1,4 +1,4 @@
-//Diversifying instruction design 0
+//Diversifying instruction design 0 Implementing baseline of time varied instruction
 module cop_ise #( parameter [6:0] CUSOPCODE = 7'b0001011) // custom 0 is used by default
 (
     cop_clk,
@@ -52,62 +52,30 @@ wire rdhigh = (funct[2:0] == 3'b111);
 wire [33:0] addi;
 wire [63:0] mult;
 wire [63:0] arthres;
-wire [63:0] randnum; 
+wire [7:0] randnum; 
 
 //data-path ==========================================
 /*digraph datapath {	
-	node [shape = rect]; IP11 IP12 IP21 IP22 RESREG
-	node [shape = invtrapezium]; COM3
-	node [shape = circle]; COM1 COM2 COM4
 
-    INPUT     [label="INPUT: op1; op2; r1; r2" shape=box style=rounded ]
-    SEL       [label="demux"                   shape=trapezium ]
-    IP11      [label="ip11"];
-    IP12      [label="ip12"];
-    IP21      [label="ip21"];
-    IP22      [label="ip22"];
-	COM1      [label=" + "];
-    COM2      [label=" + "];
-    COM3      [label="x | +"];
-    COM4      [label="+ | -"];
-    RESREG    [label="resreg"];
-    OUTPUT    [shape=box style=rounded]
-
-    C       [shape=point width=0.01 height=0.01];
-    B       [shape=point width=0.01 height=0.01];
-
-    INPUT -> SEL
-    SEL -> {IP11 IP12 IP21 IP22}
-    {IP11 IP12} -> COM1 
-    {IP21 IP22} -> COM2           
-    {COM1 COM2} -> COM3      
-    COM3 -> COM4 [label="arthres"];
-    COM4 -> RESREG [label="" weight=1];        
-    RESREG -> C -> B[dir=none]
-    B -> COM4 [constraint=false];        
-    RESREG -> OUTPUT
-
-    {rank = same; COM4   B }
-    {rank = same; RESREG C }
 }*/
 reg         trn_gen;
 wire        trn_rdy;
-trng_reg #(.W(64), .O(3)) trng_ins (
+trng_reg #(.W(8), .RI(8), .O(3)) trng_ins (
     .clk(cop_clk),
     .rst(cop_rst),
     .gen(trn_gen),
     .rdy(trn_rdy),
     .rdn(randnum) );
     
-reg  [63:0]  artran; //random number for arith. calculation masking
-reg  [31:0]  ip11, ip12, ip21, ip22;
-wire [32:0]  op1mask, op2mask;
+reg  [31:0]  artran; //random number for arith. calculation masking
+reg  [31:0]  ip11, ip21;
+wire [31:0]  op1mask, op2mask;
 
-wire [31:0] r0 = artran[63:32];
-wire [31:0] r1 = artran[31: 0];
+//wire [31:0] r0 = artran[63:32];
+//wire [31:0] r1 = artran[31: 0];
 
-assign op1mask = ip11 + ip12;
-assign op2mask = ip21 + ip22;
+assign op1mask = ip11;
+assign op2mask = ip21;
 assign addi    = op1mask + op2mask;
 assign mult    = op1mask * op2mask;
 assign arthres=(doAddi)?{{30{1'b0}},addi}:(doMult)?mult:32'd0;
@@ -176,102 +144,101 @@ always @(posedge cop_clk)
 		ctl_state <= IDLE;
         artran  <= 32'd0;
 		resreg  <= 64'd0;
-		resval  <= 1'b0;
-		trn_gen <= 1'b0;
 		end
 	else
 		case (ctl_state)
-        IDLE : begin
-        	if (op_valid & rdrand)
-            	ctl_state <= RDNGEN;
-            else if (op_valid & rdhigh)
-                ctl_state <= RDHIGH;
-            else if (op_valid & (doAddi|doMult))
-                ctl_state <= ARTCAL1;
-            else 
-                ctl_state <= IDLE;
-			resval  <= 1'b0;
-			trn_gen <= 1'b0;
-            end
-        RDHIGH : begin
-            ctl_state    <= IDLE;
-            resreg[31:0] <= resreg[63:32];
-            resval       <= 1'b1;
-            end
-		RDNGEN : begin
-            ctl_state <= (trn_rdy)? RDNFIN : RDNGEN;
-			trn_gen <= 1'b1;
-            end
-        RDNFIN : begin
-            ctl_state <= IDLE;
-            resreg  <= randnum;
-			resval  <= 1'b1;
-			trn_gen <= 1'b0;
-            end
-        ARTCAL1: begin
-            ctl_state <= (trn_rdy)? ARTCAL2 : ARTCAL1;
-            trn_gen <= 1'b1;
-            end
-        ARTCAL2: begin
-            ctl_state <= ARTCAL3T;
-            trn_gen <= 1'b0;
-            artran  <= randnum;
-            resreg  <= 64'd0;
-            end            
-        ARTCAL3T: begin
-            ctl_state <= (ranexp)? ARTCAL3 : ARTCAL3T;
-            end   
+        IDLE :  if (op_valid & rdrand)
+            	    ctl_state    <= RDNGEN;
+                else if (op_valid & rdhigh) begin
+                    ctl_state    <= RDHIGH;
+                    resreg[31:0] <= resreg[63:32];
+                    end
+                else if (op_valid & (doAddi|doMult))
+                    ctl_state    <= ARTCAL1;
+                else 
+                    ctl_state    <= IDLE;
+        RDHIGH :    ctl_state    <= IDLE;          
+		RDNGEN : if (trn_rdy) begin
+		            ctl_state    <= RDNFIN;
+		            resreg       <= {24'd0,randnum};
+		         end
+        RDNFIN :    ctl_state    <= IDLE;           
+        ARTCAL1: if (trn_rdy) 
+                 begin
+                    ctl_state    <= ARTCAL2;
+                    artran       <= {24'd0,randnum};
+                    resreg       <= 64'd0;
+                 end                                  
+        ARTCAL2:    ctl_state    <= ARTCAL3T; 
+        ARTCAL3T:   ctl_state    <= (ranexp)? ARTCAL3 : ARTCAL3T;          
         ARTCAL3: begin
-            ctl_state <= ARTCAL4T;
-			resreg  <= resreg + arthres;
-			end			
-        ARTCAL4T: begin
-            ctl_state <= (ranexp)? ARTCAL4 : ARTCAL4T;
-            end       
-        ARTCAL4: begin
-            ctl_state <= ARTCAL5T;
-            resreg  <= resreg - arthres;
-            end
-        ARTCAL5T: begin
-            ctl_state <= (ranexp)? ARTCAL5 : ARTCAL5T;
-            end 		
-        ARTCAL5 : begin
-            ctl_state <= ARTFIN_T;
-            resreg  <= (doMult)? resreg - arthres : resreg;
-            end
-        ARTFIN_T: begin            
-            ctl_state <= (ranexp)? ARTFIN : ARTFIN_T;            
-            end       
-        ARTFIN : begin
-            ctl_state <= IDLE; 
-            resval  <= 1'b1;
-            end
+                    ctl_state    <= ARTFIN;		
+                    resreg       <= resreg + arthres;
+                 end  
+        ARTFIN :    ctl_state    <= IDLE; 
+        
         default : begin  // Fault Recovery
             ctl_state <= IDLE;
             artran  <= 32'd0;
 	   	    resreg  <= 32'd0;
-		    resval  <= 1'b0;
-            trn_gen <= 1'b0;
             end
          endcase
+         
+always @(ctl_state)
+    case (ctl_state)
+        IDLE : begin
+            resval    <= 1'b0;
+            trn_gen   <= 1'b0;
+            end
+        RDHIGH : begin
+            resval    <= 1'b1;
+            trn_gen   <= 1'b0;
+            end
+		RDNGEN : begin
+            resval    <= 1'b0;
+			trn_gen   <= 1'b1;
+            end
+        RDNFIN : begin
+			resval    <= 1'b1;
+			trn_gen   <= 1'b0;
+            end
+        ARTCAL1: begin
+            resval    <= 1'b0;
+            trn_gen   <= 1'b1;
+            end
+        ARTCAL2: begin
+            resval    <= 1'b0;
+            trn_gen   <= 1'b0;
+            end            
+        ARTCAL3T: begin
+            resval    <= 1'b0;
+            trn_gen   <= 1'b0;
+            end
+        ARTCAL3: begin
+            resval    <= 1'b0;
+            trn_gen   <= 1'b0;
+            end	  
+        ARTFIN : begin
+            resval    <= 1'b1;
+            trn_gen   <= 1'b0;
+            end
+        default : begin  // Fault Recovery
+		    resval    <= 1'b0;
+            trn_gen   <= 1'b0;
+            end
+    endcase
 
 always @(posedge cop_clk)
 	if (cop_rst) begin
-	   ip11 <= 33'd0;                      ip12 <= 33'd0;
-	   ip21 <= 33'd0;                      ip22 <= 33'd0;
+	       ip11 <= 32'd0;                      
+	       ip21 <= 32'd0;                     
 	   end
-	else if (ctl_state == ARTCAL3T) begin
-	   ip11 <= op1;                        ip12 <= r0;
-	   ip21 <= op2;                        ip22 <= r1;
+	else if (ctl_state == ARTCAL3T) 
+	   if (ranexp==1'b1) begin
+	       ip11 <= op1;                       
+	       ip21 <= op2;                        
 	   end
-	else if (ctl_state == ARTCAL4T) begin
-       ip11 <= r1;                         ip12 <= 33'd0;
-       ip21 <= r0;                         ip22 <= (doMult)? op1 : 33'd0;    
-       end            
-    else if (ctl_state == ARTCAL5T) begin
-       ip11 <= op2;                        ip12 <= 33'd0;                        
-	   ip21 <= 33'd0;                      ip22 <= r0;
-       end
+
 // time execution randomising ========================
 wire [3:0] timopt = funct[6:3];
 wire       timena = timopt[3]; // time execution randomising is enable when timopt[3] (funct[6]) is set.
@@ -294,10 +261,8 @@ always @(posedge cop_clk)
     if (cop_rst)                 timcnt <= 8'h00;
     else if (~timena)            timcnt <= 8'h00;
     else if (timcnt != 8'd0)     timcnt <= timcnt -1'b1;
-    else if (ctl_state==ARTCAL2) timcnt <= timmsk & randnum[ 7: 0];
-    else if (ctl_state==ARTCAL3) timcnt <= timmsk & randnum[15: 8];
-    else if (ctl_state==ARTCAL4) timcnt <= timmsk & randnum[23:16];
-    else if (ctl_state==ARTCAL5) timcnt <= timmsk & randnum[31:24];         
+    else if (ctl_state==ARTCAL2) timcnt <= timmsk & artran[ 7: 0];
+       
 
 assign ranexp = (timcnt == 8'h00);         
 //====================================================

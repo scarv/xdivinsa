@@ -38,18 +38,18 @@
     register uint32_t rs1_ asm ("x" # rs1_n) = (uint32_t) rs1;          \
     register uint32_t rs2_ asm ("x" # rs2_n) = (uint32_t) rs2;          \
     asm volatile (                                                      \
-        ".word " STR(CUSTOMX(X, rd_n, rs1_n, rs2_n, funct)) "\n\t"      \
+        ".word " STR(CUSTOMX(X, rd_n,  rs1_n, rs2_n, funct)) "\n\t"     \
+        ".word " STR(CUSTOMX(X, rs1_n, rs1_n, rs2_n, 7)) "\n\t"	        \
         "sw %0, %1 \n\t"                                                \
-		".word "  STR(CUSTOMX(X, rd_n, rs1_n, rs2_n, 7)) "\n\t"	        \
-        "sw %0, 4+%1 \n\t"                                              \
+        "sw %2, 4+%1 \n\t"                                              \
         : "=r" (rd_), "=o" (dm)                                         \
         : [_rs1] "r" (rs1_), [_rs2] "r" (rs2_));                        \
   }
 
 //source operands rs1(a2), rs2(a3) via registers, destination register t0
-#define ROCC_INST_M0_M1_R_R(X, rd1, rd0, rs1, rs2, funct, rd_n, rs1_n, rs2_n) { \
+#define ROCC_INST_M1_M0_R_R(X, rd1, rd0, rs1, rs2, funct, rd_n, rs1_n, rs2_n) { \
     register uint32_t rd_  asm ("x" # rd_n);                          \
-    register uint32_t rs1_ asm ("x" # rs1_n) = (uint32_t) rs1;          \
+    register uint32_t rs1_ asm ( "x" # rs1_n) = (uint32_t) rs1;          \
     register uint32_t rs2_ asm ("x" # rs2_n) = (uint32_t) rs2;          \
     asm volatile (                                                      \
         ".word " STR(CUSTOMX(X, rd_n,  rs1_n, rs2_n, funct)) "\n\t"     \
@@ -64,10 +64,10 @@
 #define ROCC_INST( X, rd,     rs1, rs2, funct)   ROCC_INST_R_R_R(    X, rd,     rs1, rs2, funct, 5, 6, 7)
 
 // Standard macro: destination operand rd(t0), source operands rs1(a2), rs2(a3) via registers, result values @a1, @a0
-#define ROCC_INST1(X, m0, m1, rs1, rs2, funct)   ROCC_INST_M0_M1_R_R(X, m0, m1, rs1, rs2, funct, 5, 12, 13)
+#define ROCC_INST1(X, m1, m0, rs1, rs2, funct)   ROCC_INST_M1_M0_R_R(X, m1, m0, rs1, rs2, funct, 5, 12, 13)
 
-// Standard macro: D.W. dest. operands m0  via memories, source operands rs1, rs2 via registers
-#define ROCC_INST2(X, dm,     rs1, rs2, funct)   ROCC_INST_DM_R_R(   X, dm,     rs1, rs2, funct, 5, 6, 7)
+// Standard macro: destination operand rd(t0), source operands rs1(a1), rs2(a2) via registers, result values @dm
+#define ROCC_INST2(X, dm,     rs1, rs2, funct)   ROCC_INST_DM_R_R(   X, dm,     rs1, rs2, funct, 5, 11, 12)
 
 
 #define XCi 0	// custom instruction set index from [0..3]
@@ -99,16 +99,16 @@
 
 #define SET_TRIG asm volatile (         \
         "addi   sp, sp, -16  \n\t"                                      \
-       	"sw	    s0, 12(sp)   \n\t"                                      \
-       	"sw	    s1,  8(sp)   \n\t"                                      \
-        "lui	s0, 0x70000  \n\t"                                      \
-        "li	    s1,  1       \n\t"                                      \
+       	"sw	    t5, 12(sp)   \n\t"                                      \
+       	"sw	    t6,  8(sp)   \n\t"                                      \
+        "lui	t5, 0x70000  \n\t"                                      \
+        "li	    t6,  1       \n\t"                                      \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "sw     s1,0(s0)    \n\t"                                       \
+        "sw     t6,0(t5)    \n\t"                                       \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
@@ -121,9 +121,10 @@
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "sw	    zero, 0(s0)  \n\t"                                      \
-       	"lw	    s0,  12(sp)  \n\t"                                      \
-       	"lw	    s1,   8(sp)  \n\t"                                      \
+        "lui	t5, 0x70000  \n\t"                                      \
+        "sw	    zero, 0(t5)  \n\t"                                      \
+       	"lw	    t5,  12(sp)  \n\t"                                      \
+       	"lw	    t6,   8(sp)  \n\t"                                      \
         "addi   sp, sp, 16   \n\t"                                      \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
         "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
