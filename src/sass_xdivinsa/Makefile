@@ -3,7 +3,7 @@ hal_dir  ?= $(abspath ../../soc/$(CORE)/hal)
 sass_dir ?= $(abspath ../../external/fw-acquisition)
 
 CORE ?= rocket-xdivinsa
-XD ?= -DXDIVINSA_T0
+XD ?= -DXDIVINSA_T1
 
 CC=$(RISCV)/bin/riscv64-unknown-elf-gcc
 AS=$(RISCV)/bin/riscv64-unknown-elf-as

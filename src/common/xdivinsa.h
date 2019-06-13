@@ -74,28 +74,47 @@
 
 #define CiRand(    y              )   ROCC_INST( XCi,  y,       0,   0, 2)
 
-#define CiAddi(    y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, 0)
-#define CiAddi_t1( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 0)
-#define CiAddi_t2( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 0)
-#define CiAddi_t3( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 0)
-#define CiAddi_t4( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 0) 
-
-#define CiMult(    y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, 1)
-#define CiMult_t1( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 1)
-#define CiMult_t2( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 1)
-#define CiMult_t3( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 1)
-#define CiMult_t4( y,     op1, op2)   ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 1)
-
+#define CiAddi(    y,     op1, op2)     ROCC_INST( XCi,  y,     op1, op2, 0)
+#define CiMult(    y,     op1, op2)     ROCC_INST( XCi,  y,     op1, op2, 1)
 
 #define CiAddi_f1(  m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, 0)
 #define CiMult_f1(  m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, 1)
-#define CiMult_f1t1(m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, (8+1)<<3 + 1)
-#define CiMult_f1t2(m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, (8+2)<<3 + 1)
-#define CiMult_f1t3(m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, (8+3)<<3 + 1)
-#define CiMult_f1t4(m1, m0, op1, op2)   ROCC_INST1(XCi, m1, m0, op1, op2, (8+4)<<3 + 1)
 
 #define CiAddi_f2(  dm,     op1, op2)   ROCC_INST2(XCi, dm,     op1, op2, 0)
 #define CiMult_f2(  dm,     op1, op2)   ROCC_INST2(XCi, dm,     op1, op2, 1)
+
+//fixed delay time instructions
+#define CiAddi_dt1( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 0)
+#define CiAddi_dt2( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 0)
+#define CiAddi_dt3( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 0)
+#define CiAddi_dt4( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 0) 
+
+#define CiMult_dt1( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 1)
+#define CiMult_dt2( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 1)
+#define CiMult_dt3( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 1)
+#define CiMult_dt4( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 1)
+
+#define CiMult_f1dt1(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+1)<<3 + 1)
+#define CiMult_f1dt2(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+2)<<3 + 1)
+#define CiMult_f1dt3(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+3)<<3 + 1)
+#define CiMult_f1dt4(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+4)<<3 + 1)
+
+//random execution time instructions
+#define CiAddi_t1( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 0 + 4)
+#define CiAddi_t2( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 0 + 4)
+#define CiAddi_t3( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 0 + 4)
+#define CiAddi_t4( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 0 + 4) 
+
+#define CiMult_t1( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+1)<<3 + 1 + 4)
+#define CiMult_t2( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+2)<<3 + 1 + 4)
+#define CiMult_t3( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+3)<<3 + 1 + 4)
+#define CiMult_t4( y,     op1, op2)    ROCC_INST( XCi,  y,     op1, op2, (8+4)<<3 + 1 + 4)
+
+#define CiMult_f1t1(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+1)<<3 + 1 + 4)
+#define CiMult_f1t2(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+2)<<3 + 1 + 4)
+#define CiMult_f1t3(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+3)<<3 + 1 + 4)
+#define CiMult_f1t4(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+4)<<3 + 1 + 4)
+
 
 #define SET_TRIG asm volatile (         \
         "addi   sp, sp, -16  \n\t"                                      \

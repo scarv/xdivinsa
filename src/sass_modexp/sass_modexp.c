@@ -4,8 +4,11 @@
 #include <scarv/mp/mpz.h>
 #include <scarv/mp/mrz.h>
 
+#define NL 4   // size length in limbs (a limb is 32 bits)
+#define  W 3   // window size for LtR algorithm 
+#define PW (1<<(W-1))   // (2^(W-1))
 // For evaluating Ttest on modulo exponentiation   ===========
-int NL= 4;
+
 
 mrz_ctx_t ctx;
 
@@ -13,7 +16,55 @@ mrz_t N; int l_N;
 mrz_t k; int l_k;
 mrz_t c; int l_c;
 
-void exp_bl( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
+// Left to Right Window format of the key.
+void LtRWinFrm(uint8_t *d, const limb_t* k, int l_k){
+	int i,j;
+	limb_t t;
+	uint8_t wi;
+
+	for( int i = 0; i < l_k; i++ ) {
+		t=k[i];
+		for( int j = 0; j< BITSOF( limb_t ); j++ ) {
+			d[ i*BITSOF( limb_t ) +j] = t & 1;
+			t >>=1;
+		}
+	}
+	
+	i= l_k*BITSOF( limb_t )-1;
+	while (i>=0){
+		if (d[i]){
+			//printf("i=%d, ", i);
+			j=(i>=W)?W:i+1;
+			while (d[i-j+1]==0){j--;}
+			i = i-j+1;
+			wi=0;
+			while (j>0){ 
+				wi<<=1;
+				if (d[i+j-1]) {wi+=1;}  
+				d[i+j-1] = 0;
+				j--;				
+			}		
+			d[i]= wi;			 
+		}
+		i --;		
+	}
+}
+//Precomputation for LtR slided window algorithm
+void LtRPreCom(const mrz_ctx_t* ctx, mrz_t * b, const mrz_t x) {
+    mrz_t x2;
+    
+    memcpy( b[0], ctx->rho_1, SIZEOF( mrz_t ) );
+    //Precomputation
+	mrz_mul( ctx, b[0], b[0], x );	// b[0]=x
+	mrz_mul( ctx, x2, b[0], x );	// x2 = x*x 
+
+	for (int i = 1; i < PW; i++) {
+		mrz_mul( ctx, b[i], b[i-1], x2 );   //b[i]=b[i-1]*x^2		
+	}
+}
+
+//straightforward algorithm
+void exp_st( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
 
   mrz_t t;
   memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) );
@@ -34,6 +85,7 @@ void exp_bl( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
   memcpy( r,          t, SIZEOF( mrz_t ) );
 }
 
+//Montgomery ladder algorithm
 void exp_Ml( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
 	mrz_t R[2];
 	bool b, di;
@@ -54,10 +106,12 @@ void exp_Ml( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
     memcpy( r,          R[0], SIZEOF( mrz_t ) );
 }
 
+//always square-multiply algorithm
 void exp_sm( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
 	mrz_t R[2];
 	bool b;
 	memcpy( R[0], ctx->rho_1, SIZEOF( mrz_t ) );
+
     SET_TRIG
 	for( int i = l_y - 1; i >= 0; i-- ) {
 		for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) {			
@@ -69,6 +123,28 @@ void exp_sm( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
     CLR_TRIG
 
     memcpy( r,          R[0], SIZEOF( mrz_t ) );
+}
+
+// left to right sliding window algorithm
+void exp_lr( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const mrz_t* b, const uint8_t* d, int l_k ) {
+	mrz_t t;
+	int i;
+
+	memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) );
+
+    //calculation loop
+    SET_TRIG
+	i = l_k*BITSOF( limb_t ) - 1;
+	while (i>=0){
+		mrz_mul( ctx, t, t, t );
+		if (d[i] != 0){
+			mrz_mul( ctx, t, t, b[(d[i]>>1)]);			
+		}	
+		i --;	
+	}
+    CLR_TRIG
+
+	memcpy( r,          t, SIZEOF( mrz_t ) );
 }
 //================================================================
  
@@ -117,7 +193,7 @@ void sass_decrypt(char * message, char * key, char * cipher, int unsigned keylen
 unsigned char sass_t_func(char * datout, char * datin ){
 
     mrz_t r; 
-
+    
     #ifdef TTEST_T1
     memcpy( c, datin, NL * SIZEOF( limb_t ) );
     #elif  TTEST_T2   
@@ -126,13 +202,13 @@ unsigned char sass_t_func(char * datout, char * datin ){
  
     mrz_mul( &ctx, r, c, ctx.rho_2 );
 
-//	set_trigger();   
-//  clear_trigger();
-    exp_bl ( &ctx, r, r, k, l_k );
+    exp_st ( &ctx, r, r, k, l_k );
     //exp_Ml ( &ctx, r, r, k, l_k );
     //exp_sm ( &ctx, r, r, k, l_k );
-//  clear_trigger();
- 
+    //uint8_t d[NL * BITSOF( limb_t )]; mrz_t b[PW];
+    //LtRWinFrm(d, k, l_k);	LtRPreCom(&ctx, b, r);
+    //exp_lr( &ctx, r, r, b, d, l_k );
+
     mrz_mul( &ctx, r, r, ctx.rho_0 ); 
 
     memcpy(datout, (uint8_t*) r, NL * SIZEOF( limb_t ) );

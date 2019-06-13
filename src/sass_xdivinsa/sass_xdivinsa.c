@@ -2,7 +2,7 @@
 #include "sasstarget.h"
 
 // For evaluating Ttest on Multiplication instruction  ===========
-typedef uint32_t  limb_t;
+typedef uint32_t  limb_t;			
 typedef uint64_t dlimb_t;
 
 //  r_1*2^w + r_0  = e*f
@@ -13,6 +13,16 @@ typedef uint64_t dlimb_t;
   r_0 =       ( limb_t )( __t >> 0                    );      \
   r_1 =       ( limb_t )( __t >> (8*sizeof( limb_t )) );      \
 }
+
+#define RPI(d) {                                     \
+        asm volatile (                               \
+            "li t1," #d              "\n\t"         \
+            "RPIloop: addi t1, t1, -1  \n\t"         \
+            "bnez t1, RPIloop          \n\t"         \
+            : : );                                   \
+}
+
+
 #ifdef XDIVINSA_T0
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
     SET_TRIG
@@ -47,9 +57,61 @@ void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
 	CiMult_f1t4(*r_1, *r_0, e, f);   
     CLR_TRIG
 }
-#else
+#elif XDIVINSA_DT1
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
     SET_TRIG
+	CiMult_f1dt1(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_DT2
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1dt2(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_DT3
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1dt3(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif XDIVINSA_DT4
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	CiMult_f1dt4(*r_1, *r_0, e, f);   
+    CLR_TRIG
+}
+#elif RPI_DT0
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+	LIMB_MUL0(*r_1, *r_0, e, f);
+    CLR_TRIG
+} 
+#elif RPI_DT1
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+    RPI(1)
+	LIMB_MUL0(*r_1, *r_0, e, f);
+    CLR_TRIG
+} 
+#elif RPI_DT2
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+    RPI(3)
+	LIMB_MUL0(*r_1, *r_0, e, f);
+    CLR_TRIG
+} 
+#elif RPI_DT3
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+    RPI(7)
+	LIMB_MUL0(*r_1, *r_0, e, f);
+    CLR_TRIG
+} 
+#elif RPI_DT4
+void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
+    SET_TRIG
+    RPI(15)
 	LIMB_MUL0(*r_1, *r_0, e, f);
     CLR_TRIG
 } 
@@ -109,7 +171,7 @@ unsigned char sass_t_func(char * datout, char * datin ){
     for (i=0; i<4; i++) { b= (char*) (&e); b[3-i]=datin[i];}
     for (i=0; i<4; i++) { b= (char*) (&f); b[3-i]=datin[i+4];}
 
-	set_trigger();  
+	//set_trigger();  
 	clear_trigger();
 	mul0(&r_1, &r_0, e, f);
 
@@ -122,6 +184,9 @@ void riscv_main()
 {
     gpio_init();
     uart_init();
+
+    int r;
+    CiRand(r);
 
     // Setup the SASS context
     sass.send_byte_to_host   = sass_send_byte_to_host;

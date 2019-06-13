@@ -24,28 +24,28 @@ output [31:0]   cop_rd;
 assign cop_wait = 1'b0;
 wire isopcode= (cop_insn[6:0] == CUSOPCODE); 
  
-reg [31:0] op1;
-reg [31:0] op2;
+//reg [31:0] op1;
+//reg [31:0] op2;
 reg [6:0]  funct;
 reg        op_valid;
 always@(posedge cop_clk) begin
     if (cop_rst) begin
-        op1      <= 32'd0;
-        op2      <= 32'd0;
+//        op1      <= 32'd0;
+//        op2      <= 32'd0;
         funct    <= 7'd0;
         op_valid <= 1'b0;
     end    
     else if (cop_valid && isopcode) begin
-        op1      <= cop_rs1;
-        op2      <= cop_rs2;
+//        op1      <= cop_rs1;
+//        op2      <= cop_rs2;
         funct    <= cop_insn[31:25];   
         op_valid <= 1'b1;
     end
     else op_valid <= 1'b0;
 end
 
-wire doAddi = (funct[2:0] == 3'b000);
-wire doMult = (funct[2:0] == 3'b001);
+wire doAddi = (funct[2:0] == 3'b000)||(funct[2:0] == 3'b100);
+wire doMult = (funct[2:0] == 3'b001)||(funct[2:0] == 3'b101);
 wire rdrand = (funct[2:0] == 3'b010);
 wire rdhigh = (funct[2:0] == 3'b111);
 
@@ -163,7 +163,12 @@ always @(posedge cop_clk)
 		            resreg       <= {24'd0,randnum};
 		         end
         RDNFIN :    ctl_state    <= IDLE;           
-        ARTCAL1: if (trn_rdy) 
+        ARTCAL1: if (funct[2]==1'b0)                   // executing random delay time require new random number.
+                 begin
+                    ctl_state    <= ARTCAL2;
+                    resreg       <= 64'd0;
+                 end
+                 else if (trn_rdy) 
                  begin
                     ctl_state    <= ARTCAL2;
                     artran       <= {24'd0,randnum};
@@ -204,7 +209,7 @@ always @(ctl_state)
             end
         ARTCAL1: begin
             resval    <= 1'b0;
-            trn_gen   <= 1'b1;
+            trn_gen   <= (funct[2]==1'b0) ? 1'b0 : 1'b1;   // executing random delay time require new random number.
             end
         ARTCAL2: begin
             resval    <= 1'b0;
@@ -235,8 +240,8 @@ always @(posedge cop_clk)
 	   end
 	else if (ctl_state == ARTCAL3T) 
 	   if (ranexp==1'b1) begin
-	       ip11 <= op1;                       
-	       ip21 <= op2;                        
+	       ip11 <= cop_rs1;         //op1;                       
+	       ip21 <= cop_rs2;         //op2;                        
 	   end
 
 // time execution randomising ========================
@@ -261,7 +266,7 @@ always @(posedge cop_clk)
     if (cop_rst)                 timcnt <= 8'h00;
     else if (~timena)            timcnt <= 8'h00;
     else if (timcnt != 8'd0)     timcnt <= timcnt -1'b1;
-    else if (ctl_state==ARTCAL2) timcnt <= timmsk & artran[ 7: 0];
+    else if (ctl_state==ARTCAL2) timcnt <= (funct[2]==1'b0) ? timmsk : timmsk & artran[ 7: 0];
        
 
 assign ranexp = (timcnt == 8'h00);         
@@ -273,4 +278,3 @@ assign cop_rd = resreg[31:0];
 assign cop_wr = resval;
 
 endmodule
-

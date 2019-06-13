@@ -1,4 +1,6 @@
 # Evaluate the ttest sets
-t_func_ttest_eval 20000 680 1070 EA $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_set1_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_set2_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t3_nonzero/tt_EA_20000.svg $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t0_nonzero/tt_set1_50000.trs
+
+t_func_ttest_eval 10000 0 210000 EA $BSX_HOME/work/TTestData-ModExp-SF/TTest_25M_xdivinsa_d0t3/tt_set1_10000.trs $BSX_HOME/work/TTestData-ModExp-SF/TTest_25M_xdivinsa_d0t3/tt_set2_10000.trs $BSX_HOME/work/TTestData-ModExp-SF/TTest_25M_xdivinsa_d0t3/tt_EA_10000.svg $BSX_HOME/work/TTestData-ModExp-SF/TTest_25M_xdivinsa_d0dt3/tt_set1_10000.trs
+
 #t_func_ttest_eval 50000 680 1500 None $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/tt_set1_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/#tt_set2_50000.trs $BSX_HOME/work/tt_10000.svg
 exit
