@@ -14,7 +14,7 @@ endif
 XDI_HOME ?= $(abspath ../../)
 CORE      = rocket-xdivinsa-25M
 TARGET   ?= sakura-x
-IMPL     ?= d1
+IMPL     ?= d0
 
 extr_dir ?= $(abspath ../../external)
 work_dir ?= $(abspath ../../work)

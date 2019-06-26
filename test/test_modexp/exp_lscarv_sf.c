@@ -7,28 +7,31 @@ int NL= 32;
 
 mrz_ctx_t ctx;
 
-void exp_sm( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
-	mrz_t R[2];
-	bool b;
-	memcpy( R[0], ctx->rho_1, SIZEOF( mrz_t ) );
+void exp_sf( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
+  mrz_t t;
 
-	for( int i = l_y - 1; i >= 0; i-- ) {
-		for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) {
-			b = !(( y[ i ] >> j ) & 1); 
-			mrz_mul( ctx, R[0], R[0], R[0] );
-			mrz_mul( ctx, R[b], R[0], x);
-  		}
-	}
-  memcpy( r,          R[0], SIZEOF( mrz_t ) );
+  memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) );
+
+  for( int i = l_y - 1; i >= 0; i-- ) {
+    for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) { 
+      mrz_mul( ctx, t, t, t );
+
+      if( ( y[ i ] >> j ) & 1 ) {
+        mrz_mul( ctx, t, t, x );
+      }
+    }
+  }
+
+  memcpy( r,          t, SIZEOF( mrz_t ) );
 }
 
 int riscv_main() {
 
-	gpio_init();
+	gpio_init(); 
     uart_init();
 	uint32_t t_beg,t_end;
 
-    putstr("\nExp square-multiply-always \n");	
+    putstr("\n Straightforward modExp \n");	    
 
 	mrz_t N; int l_N;
     mrz_t x; int l_x;
@@ -73,19 +76,18 @@ int riscv_main() {
 
 	memcpy( N, Narr, NL * SIZEOF( limb_t ) );
 	memcpy( x, xarr, NL * SIZEOF( limb_t ) );
-	memcpy( k, karr, NL * SIZEOF( limb_t ) );
+    memcpy( k, karr, NL * SIZEOF( limb_t ) );
 
 	mrz_precomp( &ctx, N, l_N );
-
+   
     for(int i=0; i<10; i++){
         mrz_mul( &ctx, r, x, ctx.rho_2 );
         set_trigger();
         t_beg 	= rdcycle();
-        exp_sm( &ctx, r, r, k, l_k );
+        exp_sf( &ctx, r, r, k, l_k );
         t_end 	= rdcycle();
         clear_trigger();
-        mrz_mul( &ctx, r, r, ctx.rho_0 );     
-
+        mrz_mul( &ctx, r, r, ctx.rho_0 );
 #ifdef TEST_DUMP
 	test_dump( "N", N, l_N );  
     test_dump( "x", x, l_x );  
