@@ -37,7 +37,7 @@ void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
     SET_TRIG
 	CiMult_f1t1(*r_1, *r_0, e, f);   
-    CLR_TRIG
+    CLR_TRIG 
 }
 #elif XDIVINSA_T2
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
@@ -189,6 +189,7 @@ void riscv_main()
     CiRand(r);
 
     // Setup the SASS context
+ 	sass_ctx_init(&sass);
     sass.send_byte_to_host   = sass_send_byte_to_host;
     sass.recv_byte_from_host = sass_recv_byte_from_host;
     sass.encrypt             = sass_encrypt;
