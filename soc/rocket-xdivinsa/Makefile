@@ -87,7 +87,7 @@ $(project): | $(rtl_sources)
 	$(shell sed -i 's/CONFIG.PRIM_SOURCE.*/''CONFIG.PRIM_SOURCE {$(clktype)} \\''/g' script/make_project.tcl)
 	$(shell sed -i 's/CONFIG.PRIM_IN_FREQ.*/''CONFIG.PRIM_IN_FREQ {$(inclock)} \\''/g' script/make_project.tcl)
 	$(shell sed -i 's/set_property verilog_define.*/''set_property verilog_define \[list FPGA $(clktype)\] \[get_filesets sources_1\] ''/g' script/make_project.tcl)
-	$(VIVADO) -mode batch -source $(make_dir)/script/make_project.tcl -tclargs $(project_name) $(make_dir) $(work_dir) $(part) $(TARGET) 
+	$(VIVADO) -mode batch -source $(make_dir)/script/make_project.tcl -tclargs $(project_name) $(BSX_HOME) $(work_dir) $(part) $(TARGET) 
 
 vivado: $(project)
 	$(VIVADO) $(project) &

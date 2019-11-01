@@ -4,7 +4,7 @@
 #   Generate a vivado project for the rocketchip SoC on sakura X board
 
 set project_name [lindex $argv 0]
-set orig_dir 	 [lindex $argv 1]
+set bsp_dir 	 [lindex $argv 1]
 set work_dir 	 [lindex $argv 2]
 set part		 [lindex $argv 3]
 set target		 [lindex $argv 4]
@@ -142,7 +142,7 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 set obj [get_filesets constrs_1]
 
 # Add/Import constrs file and set constrs file properties
-set file "[file normalize "$work_dir/../board/$target/constraint/$target.xdc"]"
+set file "[file normalize "$bsp_dir/board/$target/constraint/$target.xdc"]"
 set file_added [add_files -norecurse -fileset $obj $file]
 
 # generate all IP source code

@@ -17,6 +17,10 @@ if [ -z ${RISCV} ]; then
     echo "[ERROR] No 'RISCV' environment variable defined"
 fi	
 
+if [ -z ${BSX_HOME} ]; then
+    echo "[ERROR] No 'BSX_HOME' environment variable defined"
+fi
+
 if [ -z ${SASS_RIG} ]; then
     echo "[ERROR] No 'SASS_RIG' environment variable defined"
 fi
@@ -30,6 +34,7 @@ export CORE=rocket-xdivinsa-25M
 export TARGET=sakura-x
 
 echo "XDI_HOME          = $XDI_HOME"
+echo "BSX_HOME          = $BSX_HOME"
 echo "LIBSCARV          = $LIBSCARV"
 echo "SASS_RIG          = $SASS_RIG"
 echo "RISCV             = $RISCV"
