@@ -1,0 +1,92 @@
+//testbench for cop_ise
+module cop_ise_tb;
+
+reg clk, rst;
+reg valid; 
+reg [31:0] insn;
+reg [31:0] rs1;
+reg [31:0] rs2;
+wire rdy;
+wire [31:0] rd;
+wire wr, cop_wait;
+
+cop_ise #(.CUSOPCODE(7'b0001011), .TB(1)) dut_ins (
+    .cop_clk(clk), 
+	.cop_rst(rst),
+    .cop_valid(valid), 
+	.cop_ready(rdy), 
+	.cop_wait(cop_wait),
+    .cop_wr(wr),
+    .cop_insn(insn),   
+    .cop_rs1(rs1),   
+    .cop_rs2(rs2),           
+    .cop_rd(rd)    );
+
+initial rst = 1;
+initial clk = 0;
+initial valid = 0;
+
+initial #80 rst = 0;
+always @(clk) #20 clk <= ~clk;
+
+initial begin
+		valid = 0;
+		insn  = 0;
+        rs1   = 0;
+		rs2   = 0;
+		#320; 
+		valid = 1;
+		insn  = 32'h473728b;
+        rs1   = $random;
+		rs2   = $random;
+		#800; 
+		valid = 1;
+		insn  = 32'h473728b;
+        rs1   = $random;
+		rs2   = $random;
+
+		#1000; 
+		valid = 1;
+		insn  = 32'haa73728b;
+        rs1   = $random;
+		rs2   = $random;
+
+		#1000;
+		valid = 1;
+		insn  = 32'h0e73730b;
+        rs1   = $random;
+		rs2   = $random;
+
+		#1000; 
+		valid = 1;
+		insn  = 32'haa73728b;
+        rs1   = $random;
+		rs2   = $random;
+
+		#1000; 
+		valid = 1;
+		insn  = 32'ha273728b;
+        rs1   = $random;
+		rs2   = $random;
+end
+
+initial forever begin
+		@(posedge clk)
+        if (rdy) valid = 0;
+end
+
+reg [255*8:0] wavesfile;    // Where to dump VCD wave files
+initial begin
+    if($value$plusargs("WAVES=%s",wavesfile)) begin
+    end else begin
+        wavesfile="waves-icarus.vcd";
+    end    
+    $dumpfile(wavesfile);
+    $dumpvars(0,cop_ise_tb);
+end
+
+initial #27000 $finish; 
+
+endmodule 
+
+
