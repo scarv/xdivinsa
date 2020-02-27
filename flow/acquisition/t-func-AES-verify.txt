@@ -3,6 +3,9 @@
 connection_test
 connection_info
 
+# Define t_func 
+t_func_def AES 
+
 # Call t-function
 t_func_verf
 

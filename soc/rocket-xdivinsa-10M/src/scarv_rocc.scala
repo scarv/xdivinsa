@@ -41,8 +41,7 @@ class RoCC_ISE_Imp(outer: RoCC_ISE)(implicit p: Parameters) extends LazyRoCCModu
   val CoP_BB = Module(new cop_ise())
   CoP_BB.io.cop_clk	  := clock
   CoP_BB.io.cop_rst   := reset
-//  CoP_BB.io.cop_valid <> io.cmd.fire()
-  CoP_BB.io.cop_valid <> io.cmd.valid
+  CoP_BB.io.cop_valid <> io.cmd.fire()
   CoP_BB.io.cop_insn  <> insn
   CoP_BB.io.cop_rs1	  <> io.cmd.bits.rs1
   CoP_BB.io.cop_rs2	  <> io.cmd.bits.rs2
@@ -52,19 +51,17 @@ class RoCC_ISE_Imp(outer: RoCC_ISE)(implicit p: Parameters) extends LazyRoCCModu
   io.resp.bits.data	  := CoP_BB.io.cop_rd
 
   val rdreg = Reg(UInt(width = 5))
-//  when (io.cmd.fire()) {
-  when (io.cmd.valid) {
+  when (io.cmd.fire()) {
     rdreg := io.cmd.bits.inst.rd
   }
 	
-//  val cop_isworking = Reg(init=Bool(false))
-//  when (io.cmd.fire()) {
-//    cop_isworking := Bool(true)
-//  }.elsewhen (CoP_BB.io.cop_ready){
-//    cop_isworking := Bool(false)
-//  }
-//  io.cmd.ready := (~cop_isworking) || CoP_BB.io.cop_ready
-  io.cmd.ready := CoP_BB.io.cop_ready
+  val cop_isworking = Reg(init=Bool(false))
+  when (io.cmd.fire()) {
+    cop_isworking := Bool(true)
+  }.elsewhen (CoP_BB.io.cop_ready){
+    cop_isworking := Bool(false)
+  }
+  io.cmd.ready := (~cop_isworking)	|| CoP_BB.io.cop_ready
   // command resolved if no stalls AND not issuing a load that will need a request
 
   // PROC RESPONSE INTERFACE

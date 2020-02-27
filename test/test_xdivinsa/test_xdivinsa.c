@@ -9,16 +9,26 @@
 typedef uint32_t  limb_t;
 typedef uint64_t dlimb_t;
 
-#define xmul2(t,      e, f) CiMult_f2(  t,      e, f)
+#define XMUL2_MC(r1,r0,e,f,g,h,t) {                              \
+    register uint32_t rd_  asm ("x5");                        \
+    register uint32_t rs1_ asm ("x6") = (uint32_t) e;         \
+    register uint32_t rs2_ asm ("x7") = (uint32_t) f;         \
+    asm volatile (                                            \
+        ".word "  STR(CUSTOMX(XCi, 5, 6, 7, t+1)) "\n\t"      \
+        "add      %2, %2, %3 \n\t"                            \
+        "sltu	  %3, %2, %3 \n\t"                            \
+		".word "  STR(CUSTOMX(XCi, 6, 6, 7, 7)) "\n\t"	      \
+        "add      t0, %2, t0 \n\t"                            \
+        "sltu	  %2, t0, %2 \n\t"                            \
+        "add      t1, %3, t1 \n\t"                            \
+        "add      t1, %2, t1 \n\t"                            \
+        "sw	      t0, %1     \n\t"                            \
+        "sw	      t1, %0     \n\t"                            \
+        : "=m" (r1), "=m" (r0)                                \
+        : "r"  (g),  "r"  (h), "r" (rs1_), "r" (rs2_));       \
+}
 
-#define XLIMB_MUL2(r_1,r_0,e,f,g,h) {                          \
-  dlimb_t __t,__ta;                                           \
-  xmul2(__t, e,f);                                            \
-  __ta = ( dlimb_t )( g ) + ( dlimb_t )( h ) ;                \
-  __t +=     __ta;                                            \
-  r_0  =       ( limb_t )( __t >> 0                );         \
-  r_1  =       ( limb_t )( __t >> BITSOF( limb_t ) );         \
-} 
+#define XLIMB_MUL2(r_1,r_0,e,f,g,h)  XMUL2_MC(r_1,r_0,e,f,g,h,4); 
 
 #define LIMB_MUL2(r_1,r_0,e,f,g,h) {                          \
   dlimb_t __t  = ( dlimb_t )( e ) *                           \
@@ -96,18 +106,22 @@ for (i=1;i<7;i++){
 putstr("\nTest XDivinsa instructions\n");
 CiRand(a); 
 //a &= 0xFFFF;
+
 putstr("first  number a="); uint2str(a, st); putstr(st); putstr(";\n");
 
 CiRand(b); 
 //b &= 0xFFFF;
+
 putstr("second number b="); uint2str(b, st); putstr(st); putstr(";\n");
 
 CiRand(g); 
 //b &= 0xFFFF;
+
 putstr("second number g="); uint2str(g, st); putstr(st); putstr(";\n");
 
 CiRand(h); 
 //b &= 0xFFFF;
+
 putstr("second number h="); uint2str(h, st); putstr(st); putstr(";\n");
 
 
@@ -174,7 +188,7 @@ putstr("Running CI LIMB_MUL2 instruction\n");
 for (i=1;i<7;i++){
 	
 	t_beg=rdcycle();
-	XLIMB_MUL2( c1, c0, a, b, g, h );
+	XLIMB_MUL2(c1, c0, a, b, g, h );
 	t_end=rdcycle();
 	uint2str(i, st); putstr(st); putstr(":ciaddi = "); uint2str(c0, st); putstr(st); putstr(", "); uint2str(c1, st); putstr(st); 
 	putstr(" process time= "); uint2str(t_end-t_beg, st); putstr(st); putstr(";\n"); 

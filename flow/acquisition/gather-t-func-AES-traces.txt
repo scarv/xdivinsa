@@ -1,0 +1,33 @@
+
+# Make sure that everything is connected and working
+connection_test
+connection_info
+
+# Open a connection to the scope
+scope_open
+
+# Configure the scope trigger signal:
+#   Channel B, 100ms timeout, 1.0V threshold, Rising edge
+scope_cfg_trigger B 100 1.0 Rising
+
+# Configure the scope capture channels
+scope_cfg_channel A 50e-3 AC
+scope_cfg_channel B 5     DC
+
+
+# Set the channel which the power traces come from
+scope_cfg_trace_channel B
+
+# Get the best sampling setup
+#find_sample_rate 7370e3 0.5 B
+
+# Define t_func 
+t_func_def AES
+
+# Capture traces and write the result
+t_func_trace_acq 250e6 97000 12 $NUM_TRACES $XDI_HOME/work/traces.trs
+
+# Disconnect and exit
+scope_close
+disconnect
+exit

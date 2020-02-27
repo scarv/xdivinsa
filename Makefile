@@ -10,9 +10,9 @@ export work_dir = $(XDI_HOME)/work
 
 export PORT        ?= /dev/ttyUSB0
 export BAUD        ?= 115200   
-#export BAUD        ?= 57600
-export NUM_TRACES  ?= 1000
-
+#export BAUD       ?= 57600
+export NUM_TRACES  ?= 100
+export T_FUNC      ?= AES
 export SASS_RIG    ?=$(abspath ./external/fw-acquisition)
 
 CORE	?= rocket-xdivinsa
@@ -24,6 +24,8 @@ prog_mem = $(work_dir)/$(TARGET)-$(CORE)-imp/prog-bin/prog.mem
 
 OPT     ?= BEQ
 EXE     ?= CASE1
+
+TraceFile ?= traces.trs
 
 .PHONY: project-soc vivado bitstream verilog acquisition-firmware bit-update program-fpga
 verilog:
@@ -62,15 +64,22 @@ sass-xdivinsa:
 sass-modexp:
 	$(MAKE) -C $(XDI_HOME)/src/sass_modexp all CORE=$(CORE) work_dir=$(work_dir)/sass_modexp  sass_dir=$(SASS_RIG)
 	{ echo '@00000000'; cat $(work_dir)/sass_modexp/sass_modexp-$(CORE).hex;} >$(prog_mem)
-
+sass-aes:
+	$(MAKE) -C $(XDI_HOME)/src/sass_aes all CORE=$(CORE) work_dir=$(work_dir)/sass_aes  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_aes/sass_aes-$(CORE).hex;} >$(prog_mem)
 
 
 t-func-verify:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-verify
+	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-verify T_FUNC=$(T_FUNC)
+t-func-traces:
+	$(MAKE) -C $(XDI_HOME)/flow/acquisition capture-t-func-traces T_FUNC=$(T_FUNC)
 t-func-ttest:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition capture-t-func-ttest
+	$(MAKE) -C $(XDI_HOME)/flow/acquisition capture-t-func-ttest T_FUNC=$(T_FUNC)
 t-func-ttest-eval:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-ttest-eval
+	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-ttest-eval T_FUNC=$(T_FUNC)
+
+plot_traces:
+	python flow/acquisition/plot_traces.py --trace_file $(work_dir)/$(TraceFile) 
 
 .PHONY: helloworld led-flash test-cop
 #--------------------------------------------------------------------

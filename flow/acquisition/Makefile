@@ -1,5 +1,6 @@
 PORT        ?= /dev/ttyUSB0
 BAUD        ?= 115200
+T_FUNC      ?= AES
 NUM_TRACES  ?= 1000
 
 .PHONY: capture-traces
@@ -10,19 +11,26 @@ capture-traces:
         --baud $(BAUD) \
         --source $(BSX_HOME)/flow/acquisition/gather-traces.txt
 
-.PHONY: capture-t-func-ttest
-capture-t-func-ttest:
-	$(SASS_RIG)/shell.py \
-        --port $(PORT) \
-        --baud $(BAUD) \
-        --source gather-t-func-ttest.txt
-
 .PHONY: t-func-verify
 t-func-verify:
 	$(SASS_RIG)/shell.py \
         --port $(PORT) \
         --baud $(BAUD) \
-        --source t-func-verify.txt
+        --source t-func-$(T_FUNC)-verify.txt
+
+.PHONY: capture-t-func-traces
+capture-t-func-traces:
+	$(SASS_RIG)/shell.py \
+        --port $(PORT) \
+        --baud $(BAUD) \
+        --source gather-t-func-$(T_FUNC)-traces.txt
+
+.PHONY: capture-t-func-ttest
+capture-t-func-ttest:
+	$(SASS_RIG)/shell.py \
+        --port $(PORT) \
+        --baud $(BAUD) \
+        --source gather-t-func-$(T_FUNC)-ttest.txt
 
 t-func-ttest-eval:
 	$(SASS_RIG)/shell.py --source ttest-eval.txt

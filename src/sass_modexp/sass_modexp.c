@@ -64,12 +64,12 @@ void LtRPreCom(const mrz_ctx_t* ctx, mrz_t * b, const mrz_t x) {
 }
 
 //straightforward algorithm
-void exp_st( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
+void exp_sf( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
 
   mrz_t t;
-  memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) );
-  SET_TRIG
-  
+  memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) ); 
+
+  set_trigger();     //SET_TRIG
   for( int i = l_y - 1; i >= 0; i-- ) {
     for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) { 
 
@@ -80,9 +80,10 @@ void exp_st( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
       }
       
     }
-  }
-  CLR_TRIG
-  memcpy( r,          t, SIZEOF( mrz_t ) );
+  } 
+  clear_trigger();    //CLR_TRIG
+
+  memcpy( r, t, SIZEOF( mrz_t ) );
 }
 
 //Montgomery ladder algorithm
@@ -91,8 +92,8 @@ void exp_Ml( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
 	bool b, di;
 	memcpy( R[0], ctx->rho_1, SIZEOF( mrz_t ) );
 	memcpy( R[1], x, NL*SIZEOF( limb_t ) );	
-
-    SET_TRIG
+   
+	set_trigger();    //SET_TRIG
 	for( int i = l_y - 1; i >= 0; i-- ) {
 		for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) {
 			di = (( y[ i ] >> j ) & 1); 
@@ -101,18 +102,18 @@ void exp_Ml( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
 			mrz_mul( ctx, R[di], R[di], R[di]);
   		}
 	}
-    CLR_TRIG
+	clear_trigger();  //CLR_TRIG  
     
     memcpy( r,          R[0], SIZEOF( mrz_t ) );
 }
 
 //always square-multiply algorithm
-void exp_sm( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
+void exp_sma( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int l_y ) {
 	mrz_t R[2];
 	bool b;
 	memcpy( R[0], ctx->rho_1, SIZEOF( mrz_t ) );
-
-    SET_TRIG
+    
+	set_trigger();   //SET_TRIG
 	for( int i = l_y - 1; i >= 0; i-- ) {
 		for( int j = ( BITSOF( limb_t ) - 1 ); j >= 0; j-- ) {			
 			b = !(( y[ i ] >> j ) & 1); 
@@ -120,20 +121,20 @@ void exp_sm( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const limb_t* y, int 
 			mrz_mul( ctx, R[b], R[0], x);            
   		}
 	}
-    CLR_TRIG
+	clear_trigger();  //CLR_TRIG    
 
     memcpy( r,          R[0], SIZEOF( mrz_t ) );
 }
 
 // left to right sliding window algorithm
-void exp_lr( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const mrz_t* b, const uint8_t* d, int l_k ) {
+void exp_sw( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const mrz_t* b, const uint8_t* d, int l_k ) {
 	mrz_t t;
 	int i;
 
 	memcpy( t, ctx->rho_1, SIZEOF( mrz_t ) );
 
-    //calculation loop
-    SET_TRIG
+    //calculation loop    
+	set_trigger();   //SET_TRIG
 	i = l_k*BITSOF( limb_t ) - 1;
 	while (i>=0){
 		mrz_mul( ctx, t, t, t );
@@ -142,7 +143,7 @@ void exp_lr( const mrz_ctx_t* ctx, mrz_t r, const mrz_t x, const mrz_t* b, const
 		}	
 		i --;	
 	}
-    CLR_TRIG
+	clear_trigger();  //CLR_TRIG    
 
 	memcpy( r,          t, SIZEOF( mrz_t ) );
 }
@@ -202,13 +203,16 @@ unsigned char sass_t_func(char * datout, char * datin ){
  
     mrz_mul( &ctx, r, c, ctx.rho_2 );
 
-    exp_st ( &ctx, r, r, k, l_k );
+	#ifdef ALG_SMA
+    exp_sma ( &ctx, r, r, k, l_k );
+    #elif  ALG_SW
+    uint8_t d[NL * BITSOF( limb_t )]; mrz_t b[PW];
+    LtRWinFrm(d, k, l_k);	LtRPreCom(&ctx, b, r);
+    exp_sw( &ctx, r, r, b, d, l_k );
+    #else
+    exp_sf ( &ctx, r, r, k, l_k );
+	#endif
     //exp_Ml ( &ctx, r, r, k, l_k );
-    //exp_sm ( &ctx, r, r, k, l_k );
-    //uint8_t d[NL * BITSOF( limb_t )]; mrz_t b[PW];
-    //LtRWinFrm(d, k, l_k);	LtRPreCom(&ctx, b, r);
-    //exp_lr( &ctx, r, r, b, d, l_k );
-
     mrz_mul( &ctx, r, r, ctx.rho_0 ); 
 
     memcpy(datout, (uint8_t*) r, NL * SIZEOF( limb_t ) );
@@ -220,6 +224,8 @@ void riscv_main()
 {
     gpio_init();
     uart_init();
+    int r;
+    CiRand(r);
     
     /* python code to generate 1024 bit key of RSA
     from Crypto.PublicKey import RSA 
@@ -240,7 +246,7 @@ void riscv_main()
 
     //                LSB                                                                         MSB  
     uint8_t  Narr[16]={0x03,0x8d,0x17,0x59,0xd7,0x4e,0x40,0xdb,0x30,0xfd,0x10,0xf6,0x3e,0x8b,0xb4,0xf9};
-    uint8_t  karr[16]={0xe5,0x7c,0xb2,0xef,0x62,0xb8,0xea,0xe8,0xc0,0xef,0x10,0x1a,0xd7,0x4c,0xf5,0xb1};
+    uint8_t  karr[16]={0xbf,0x7c,0xb2,0xef,0x62,0xb8,0xea,0xe8,0xc0,0xef,0x10,0x1a,0xd7,0x4c,0xf5,0xef};
     uint8_t  carr[16]={0xc8,0x87,0x38,0x67,0x85,0x9a,0x11,0x4e,0x0b,0x02,0x53,0x5c,0x93,0xeb,0x2d,0x43};
 
     l_N = l_c= l_k = NL;
@@ -252,6 +258,7 @@ void riscv_main()
     mrz_precomp( &ctx, N, l_N );
 
     // Setup the SASS context
+ 	sass_ctx_init(&sass);
     sass.send_byte_to_host   = sass_send_byte_to_host;
     sass.recv_byte_from_host = sass_recv_byte_from_host;
     sass.encrypt             = sass_encrypt;
