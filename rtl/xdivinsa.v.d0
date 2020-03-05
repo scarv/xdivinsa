@@ -29,6 +29,7 @@ wire isopcode= (cop_insn[6:0] == CUSOPCODE);
 wire       op_valid = cop_valid && isopcode;
 wire [6:0] funct    = cop_insn[31:25];
 
+/*
 reg [6:0]  funct_lat;
 always@(posedge cop_clk) begin
     if (cop_rst) begin
@@ -38,13 +39,17 @@ always@(posedge cop_clk) begin
         funct_lat    <= funct;   
     end
 end
-
-wire doAddi = (funct[2:0] == 3'b000)||(funct[2:0] == 3'b100);
-wire doMult = (funct[2:0] == 3'b001)||(funct[2:0] == 3'b101);
+*/
+//wire doAddi = (funct[2:0] == 3'b000)||(funct[2:0] == 3'b100);
+//wire doMult = (funct[2:0] == 3'b001)||(funct[2:0] == 3'b101);
+wire doAddi = (funct[2:0] == 3'b100);
+wire doMult = (funct[2:0] == 3'b101);
+wire doXori = (funct[2:0] == 3'b110);
 wire rdrand = (funct[2:0] == 3'b010);
 wire rdhigh = (funct[2:0] == 3'b111);
 
-wire [33:0] addi;
+wire [31:0] xori;
+wire [32:0] addi;
 wire [63:0] mult;
 wire [63:0] arthres;
 
@@ -109,9 +114,10 @@ wire [31:0]  op1mask, op2mask;
 
 assign op1mask = ip11;
 assign op2mask = ip21;
+assign xori    = op1mask ^ op2mask;
 assign addi    = op1mask + op2mask;
 assign mult    = op1mask * op2mask;
-assign arthres=(doAddi)?{{30{1'b0}},addi}:(doMult)?mult:64'd0;
+assign arthres = (doXori)? {{32{1'b0}},xori} : (doAddi)?{{31{1'b0}},addi}:(doMult)?mult:64'd0;
 //====================================================
 
 //control-unit =======================================
@@ -187,7 +193,7 @@ always @(posedge cop_clk)
                     resreg[31:0] <= resreg[63:32];
                     //resreg[31:0] <= 32'hAAAAAAAA;
                     end
-                else if (op_valid & (doAddi|doMult)) begin
+                else if (op_valid & (doXori|doAddi|doMult)) begin
 					ctl_state    <= ARTCAL1;                    
 //					if (trn_rdy) artran  <= {24'd0,randnum};
 					end
@@ -199,7 +205,8 @@ always @(posedge cop_clk)
 		            resreg[31:0] <= {24'd0,randnum};
 		         end
         RDNFIN :    ctl_state    <= IDLE;           
-        ARTCAL1: if (funct_lat[2]==1'b1)                   // executing random delay time require new random number.
+        ARTCAL1: //if (funct_lat[2]==1'b1)                   // executing random delay time require new random number.
+                 if (funct[6]==1'b1)
                  begin
                     if (trn_rdy) begin
 //					    artran       <= {24'd0,randnum};
@@ -229,7 +236,8 @@ always @(*)
     case (ctl_state)
         IDLE : begin
             resval    <= 1'b0;
-            trn_gen   <= (op_valid & (rdrand|((doAddi|doMult)&funct[2])));
+            //trn_gen   <= (op_valid & (rdrand|((doAddi|doMult)&funct[2])));
+            trn_gen   <= (op_valid & (rdrand|((doXori|doAddi|doMult)&funct[6])));
             end
         RDHIGH : begin
             resval    <= 1'b1;
@@ -245,7 +253,8 @@ always @(*)
             end
         ARTCAL1: begin
             resval    <= 1'b0;
-            trn_gen   <= funct_lat[2];   // executing random delay time require new random number.
+            // trn_gen   <= funct_lat[2];   // executing random delay time require new random number.
+            trn_gen   <= 1'b1; 
             end         
         ARTCAL3T: begin
             resval    <= 1'b0;
@@ -277,7 +286,8 @@ always @(posedge cop_clk)
 	   end
 
 // time execution randomising ========================
-wire [3:0] timopt = funct_lat[6:3];
+//wire [3:0] timopt = funct_lat[6:3];
+wire [3:0] timopt = funct[6:3];
 wire       timena = timopt[3]; // time execution randomising is enable when timopt[3] (funct[6]) is set.
          
 reg [7:0]  timmsk;
@@ -298,7 +308,8 @@ always @(posedge cop_clk)
     if (cop_rst)                 timcnt <= 8'h00;
     else if (~timena)            timcnt <= 8'h00;
     else if (timcnt != 8'd0)     timcnt <= timcnt -1'b1;
-    else if (ctl_state==ARTCAL1) timcnt <= (funct_lat[2]==1'b0) ? timmsk : (timmsk & randnum[ 7: 0]);
+    //else if (ctl_state==ARTCAL1) timcnt <= (funct_lat[2]==1'b0) ? timmsk : (timmsk & randnum[ 7: 0]);
+    else if (ctl_state==ARTCAL1) timcnt <= (timmsk & randnum[ 7: 0]);
        
 
 assign ranexp = (timcnt == 8'h00);         
