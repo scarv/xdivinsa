@@ -22,8 +22,6 @@ soc_dir ?= $(XDI_HOME)/soc
 
 prog_mem = $(work_dir)/$(TARGET)-$(CORE)-imp/prog-bin/prog.mem
 
-OPT     ?= BEQ
-EXE     ?= CASE1
 
 TraceFile ?= traces.trs
 
@@ -54,13 +52,7 @@ led-flash:
 test-xdivinsa:
 	$(MAKE) -C $(XDI_HOME)/test/test_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/test_xdivinsa
 	{ echo '@00000000'; cat $(work_dir)/test_xdivinsa/test_xdivinsa-$(CORE).hex;} >$(prog_mem)
-test-modexp:
-	@rm -r -f $(work_dir)/test_modexp
-	$(MAKE) -C $(XDI_HOME)/test/test_modexp all CORE=$(CORE) work_dir=$(work_dir)/test_modexp  sass_dir=$(SASS_RIG) 
-	{ echo '@00000000'; cat $(work_dir)/test_modexp/*.hex;} >$(prog_mem)
-sass-xdivinsa:
-	$(MAKE) -C $(XDI_HOME)/src/sass_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/sass_xdivinsa  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_xdivinsa/sass_xdivinsa-$(CORE).hex;} >$(prog_mem)
+
 sass-xdiadd:
 	$(MAKE) -C $(XDI_HOME)/src/sass_xdiadd all CORE=$(CORE) work_dir=$(work_dir)/sass_xdiadd  sass_dir=$(SASS_RIG)
 	{ echo '@00000000'; cat $(work_dir)/sass_xdiadd/sass_xdiadd-$(CORE).hex;} >$(prog_mem)
