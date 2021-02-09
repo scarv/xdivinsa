@@ -1,0 +1,49 @@
+#!/bin/bash
+export PORT=/dev/ttyUSB0
+export BAUD=115200   
+#export BAUD=57600
+#export FREQ=25M
+export NUM_TRACES=10000
+export T_FUNC=ModExp
+
+export CORE=picorv-xdivinsa
+ALG="SF"
+
+IMPL_V="d0"
+XD_V="3 4"
+
+echo $CORE
+echo $T_FUNC
+
+
+sed -i 's/^scope_cfg_trace_channel.*/scope_cfg_trace_channel A/g' ${XDI_HOME}/flow/acquisition/gather-t-func-${T_FUNC}-ttest.txt
+
+for A in $ALG ; do
+#for I in $IMPL_V; do
+#    make verilog IMPL=$I
+#    echo "Implementing bitstream of design for FPGA ..."
+#    make bitstream > /dev/null
+	echo "For Xdivinsa ..."
+    for T in $XD_V; do
+        mkdir -p ${XDI_HOME}/work/TTestData-ModExp/TTest_${CORE}_t${T,,}
+		echo "make -B sass-modexp XD="-DXDIVINSA=$T -DALG_$A""
+        make -B sass-modexp XD="-DXDIVINSA=$T -DALG_$A" > /dev/null
+        make program-fpga
+        make t-func-verify PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC
+        make t-func-ttest  PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC
+        mv ${XDI_HOME}/work/tt_set1.trs ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_t${T,,}/tt_set1_${NUM_TRACES}.trs
+        mv ${XDI_HOME}/work/tt_set2.trs ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_t${T,,}/tt_set2_${NUM_TRACES}.trs
+        mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_t${T,,}/TTest_${CORE}_${T,,}_${NUM_TRACES}.svg
+    done
+
+#	echo "For Baseline ..."
+#	mkdir -p ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_BL
+#	make -B sass-modexp XD="-DALG_$A" > /dev/null
+#	make program-fpga
+#	make t-func-verify PORT=$PORT BAUD=$BAUD
+#	make t-func-ttest  PORT=$PORT BAUD=$BAUD
+#	mv ${XDI_HOME}/work/tt_set1.trs ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_BL/tt_set1_${NUM_TRACES}.trs
+#	mv ${XDI_HOME}/work/tt_set2.trs ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_BL/tt_set2_${NUM_TRACES}.trs
+#	mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-ModExp-${A}/TTest_${CORE}_BL/TTest_${CORE}_BL_${NUM_TRACES}.svg
+done
+

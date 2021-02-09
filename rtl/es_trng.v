@@ -5,6 +5,7 @@ module es_trng(
     rnb,
     val 
 );
+parameter Ne  = 3; // number of entropy sources
 
 input rst, clk;
 input gen;
@@ -25,17 +26,17 @@ es_trng_ctrl ctrl_ins(  .rst(rst), .clk(clk), .gen(gen), .rnb(rnb), .val(val),
                         .valid(valid), 
                         .ran_bit(ran_bit));
 
-(* dont_touch = "true", KEEP = "true" *) wire [5:0] t_rand;
-(* dont_touch = "true", KEEP = "true" *)  wire [5:0] t_val;
+(* dont_touch = "true", KEEP = "true" *) wire [Ne-1:0] t_rand;
+(* dont_touch = "true", KEEP = "true" *)  wire [Ne-1:0] t_val;
  
 generate genvar i;
-for (i=0;i<6;i=i+1) begin : gen_trng
+for (i=0;i<Ne;i=i+1) begin : gen_trng
      es es_inst (.fro1_ena(fro1_ena), .fro2_ena(fro2_ena), .clr(clr), .valid(t_val[i]), .ran_bit(t_rand[i]));
 end
 endgenerate
 
-assign valid   = &t_val[5:0];
-assign ran_bit = ^t_rand[5:0];
+assign valid   = &t_val;
+assign ran_bit = ^t_rand;
 
 endmodule
 

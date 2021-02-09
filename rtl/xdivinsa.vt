@@ -34,40 +34,62 @@ initial begin
 		insn  = 0;
         rs1   = 0;
 		rs2   = 0;
-		#320; 
+		#305; 
 		valid = 1;
-		insn  = 32'h473728b;
+		insn  = 32'h0407e78b;  //test xdirdn
+		#500;
+		valid = 1;
+		#500;
+		valid = 1;
+		#500;
+		valid = 1;
+		#500;
+		valid = 1;
+
+		#1000; 
+		valid = 1;
+		insn  = 32'hb8e7f78b; //test xdi3add
         rs1   = $random;
 		rs2   = $random;
-		#800; 
+		#500; 
 		valid = 1;
-		insn  = 32'h473728b;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
         rs1   = $random;
 		rs2   = $random;
 
 		#1000; 
 		valid = 1;
-		insn  = 32'haa73728b;
+		insn  = 32'hbce7f78b;//test xdi3xor
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
+        rs1   = $random;
+		rs2   = $random;
+		#500; 
+		valid = 1;
         rs1   = $random;
 		rs2   = $random;
 
-		#1000;
-		valid = 1;
-		insn  = 32'h0e73730b;
-        rs1   = $random;
-		rs2   = $random;
-
-		#1000; 
-		valid = 1;
-		insn  = 32'haa73728b;
-        rs1   = $random;
-		rs2   = $random;
-
-		#1000; 
-		valid = 1;
-		insn  = 32'ha273728b;
-        rs1   = $random;
-		rs2   = $random;
 end
 
 initial forever begin

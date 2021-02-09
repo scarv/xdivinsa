@@ -13,6 +13,7 @@ capture-traces:
 
 .PHONY: t-func-verify
 t-func-verify:
+	ln -s -f $(XDI_HOME)/flow/acquisition/pysrc/SAFTFunc_$(T_FUNC).py $(SASS_RIG)/sassrig/SAFTFunc_$(T_FUNC).py
 	$(SASS_RIG)/shell.py \
         --port $(PORT) \
         --baud $(BAUD) \
@@ -20,6 +21,7 @@ t-func-verify:
 
 .PHONY: capture-t-func-traces
 capture-t-func-traces:
+	ln -s -f $(XDI_HOME)/flow/acquisition/pysrc/SAFTFunc_$(T_FUNC).py $(SASS_RIG)/sassrig/SAFTFunc_$(T_FUNC).py
 	$(SASS_RIG)/shell.py \
         --port $(PORT) \
         --baud $(BAUD) \
@@ -27,6 +29,7 @@ capture-t-func-traces:
 
 .PHONY: capture-t-func-ttest
 capture-t-func-ttest:
+	ln -s -f $(XDI_HOME)/flow/acquisition/pysrc/SAFTFunc_$(T_FUNC).py $(SASS_RIG)/sassrig/SAFTFunc_$(T_FUNC).py
 	$(SASS_RIG)/shell.py \
         --port $(PORT) \
         --baud $(BAUD) \

@@ -1,0 +1,61 @@
+#!/bin/bash
+export PORT=/dev/ttyUSB0
+#export BAUD ?= 115200   
+export BAUD=57600
+export FREQ=25M
+export NUMTR=100
+export INTYPE=nonzero
+
+
+export CORE=rocket-xdivinsa-$FREQ
+IMPL_V="d0"
+XD_V="DT1 DT2 DT3 DT4"
+
+echo $CORE
+#mkdir -p ${BSX_HOME}/work/TTestData
+sed -i 's/^.* import SAFTFunc$/from .SAFTFunc_Mult       import SAFTFunc/g'  ${SASS_RIG}/sassrig/SAFShell.py
+sed -i 's/^t_func_ttest_acq.*/t_func_ttest_acq 125e6 700 8 '${NUMTR}' $BSX_HOME\/work\/tt_set1.trs $BSX_HOME\/work\/tt_set2.trs/g'  ${XDI_HOME}/flow/acquisition/gather-t-func-ttest.txt
+
+echo "For Xdivinsa ..."
+for I in $IMPL_V; do
+#    make verilog IMPL=$I
+    echo "Implementing bitstream of design for FPGA ..."
+    make bitstream > /dev/null
+    for T in $XD_V; do
+        mkdir -p ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_xdivinsa_${I}${T,,}_${INTYPE}
+        make -B sass-xdivinsa XD=-DXDIVINSA_$T
+        make program-fpga
+        make t-func-verify PORT=$PORT BAUD=$BAUD
+        make t-func-ttest  PORT=$PORT BAUD=$BAUD
+        mv ${BSX_HOME}/work/tt_set1.trs ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_xdivinsa_${I}${T,,}_${INTYPE}/tt_set1_${NUMTR}.trs
+        mv ${BSX_HOME}/work/tt_set2.trs ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_xdivinsa_${I}${T,,}_${INTYPE}/tt_set2_${NUMTR}.trs
+        mv ${BSX_HOME}/work/tt.svg      ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_xdivinsa_${I}${T,,}_${INTYPE}/TTest_${FREQ}_xdivinsa_${I}${T,,}_${INTYPE}_${NUMTR}.svg
+    done
+done
+
+#echo "For Baseline ..."
+#mkdir -p ${BSX_HOME}/work/TTestData0/TTest_${FREQ}_BL_${INTYPE}
+#make -B sass-xdivinsa XD=
+#make program-fpga
+#make t-func-verify PORT=$PORT BAUD=$BAUD
+#make t-func-ttest  PORT=$PORT BAUD=$BAUD
+#mv ${BSX_HOME}/work/tt_set1.trs ${BSX_HOME}/work/TTestData/TTest_${FREQ}_BL_${INTYPE}/tt_set1_${NUMTR}.trs
+#mv ${BSX_HOME}/work/tt_set2.trs ${BSX_HOME}/work/TTestData/TTest_${FREQ}_BL_${INTYPE}/tt_set2_${NUMTR}.trs
+#mv ${BSX_HOME}/work/tt.svg      ${BSX_HOME}/work/TTestData/TTest_${FREQ}_BL_${INTYPE}/TTest_${FREQ}_BL_${INTYPE}_${NUMTR}.svg
+
+#echo "For RPI ..."
+#for I in $IMPL_V; do
+##    make verilog IMPL=$I
+#    echo "Implementing bitstream of design for FPGA ..."
+#    make bitstream > /dev/null
+#    for T in $XD_V; do
+#        mkdir -p ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_RPI_${I}${T,,}_${INTYPE}
+#        make -B sass-xdivinsa XD=-DRPI_$T
+#        make program-fpga
+#        make t-func-verify PORT=$PORT BAUD=$BAUD
+#        make t-func-ttest  PORT=$PORT BAUD=$BAUD
+#        mv ${BSX_HOME}/work/tt_set1.trs ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_RPI_${I}${T,,}_${INTYPE}/tt_set1_${NUMTR}.trs
+#        mv ${BSX_HOME}/work/tt_set2.trs ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_RPI_${I}${T,,}_${INTYPE}/tt_set2_${NUMTR}.trs
+#        mv ${BSX_HOME}/work/tt.svg      ${BSX_HOME}/work/TTestDataRef1/TTest_${FREQ}_RPI_${I}${T,,}_${INTYPE}/TTest_${FREQ}_RPI_${I}${T,,}_${INTYPE}_${NUMTR}.svg
+#    done
+#done

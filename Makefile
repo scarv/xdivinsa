@@ -11,7 +11,7 @@ export work_dir = $(XDI_HOME)/work
 export PORT        ?= /dev/ttyUSB0
 export BAUD        ?= 115200   
 #export BAUD       ?= 57600
-export NUM_TRACES  ?= 100
+export NUM_TRACES  ?= 1000
 export T_FUNC      ?= AES
 export SASS_RIG    ?=$(abspath ./external/fw-acquisition)
 
@@ -61,12 +61,24 @@ test-modexp:
 sass-xdivinsa:
 	$(MAKE) -C $(XDI_HOME)/src/sass_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/sass_xdivinsa  sass_dir=$(SASS_RIG)
 	{ echo '@00000000'; cat $(work_dir)/sass_xdivinsa/sass_xdivinsa-$(CORE).hex;} >$(prog_mem)
+sass-xdiadd:
+	$(MAKE) -C $(XDI_HOME)/src/sass_xdiadd all CORE=$(CORE) work_dir=$(work_dir)/sass_xdiadd  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_xdiadd/sass_xdiadd-$(CORE).hex;} >$(prog_mem)
+sass-xdixor:
+	$(MAKE) -C $(XDI_HOME)/src/sass_xdixor all CORE=$(CORE) work_dir=$(work_dir)/sass_xdixor  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_xdixor/sass_xdixor-$(CORE).hex;} >$(prog_mem)
 sass-modexp:
 	$(MAKE) -C $(XDI_HOME)/src/sass_modexp all CORE=$(CORE) work_dir=$(work_dir)/sass_modexp  sass_dir=$(SASS_RIG)
 	{ echo '@00000000'; cat $(work_dir)/sass_modexp/sass_modexp-$(CORE).hex;} >$(prog_mem)
-sass-aes:
-	$(MAKE) -C $(XDI_HOME)/src/sass_aes all CORE=$(CORE) work_dir=$(work_dir)/sass_aes  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_aes/sass_aes-$(CORE).hex;} >$(prog_mem)
+sass-aes-enc:
+	$(MAKE) -C $(XDI_HOME)/src/sass_aes_enc all CORE=$(CORE) work_dir=$(work_dir)/sass_aes_enc  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_aes_enc/sass_aes_enc-$(CORE).hex;} >$(prog_mem)
+sass-chacha20:
+	$(MAKE) -C $(XDI_HOME)/src/sass_chacha20 all CORE=$(CORE) work_dir=$(work_dir)/sass_chacha20  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_chacha20/sass_chacha20-$(CORE).hex;} >$(prog_mem)
+sass-speck:
+	$(MAKE) -C $(XDI_HOME)/src/sass_speck all CORE=$(CORE) work_dir=$(work_dir)/sass_speck  sass_dir=$(SASS_RIG)
+	{ echo '@00000000'; cat $(work_dir)/sass_speck/sass_speck-$(CORE).hex;} >$(prog_mem)
 
 
 t-func-verify:
@@ -79,7 +91,7 @@ t-func-ttest-eval:
 	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-ttest-eval T_FUNC=$(T_FUNC)
 
 plot_traces:
-	python flow/acquisition/plot_traces.py --trace_file $(work_dir)/$(TraceFile) 
+	python3 flow/acquisition/pysrc/plot_traces.py --trace_file $(work_dir)/$(TraceFile) &
 
 .PHONY: helloworld led-flash test-cop
 #--------------------------------------------------------------------

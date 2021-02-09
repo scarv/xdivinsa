@@ -1,0 +1,44 @@
+#!/bin/bash
+export PORT=/dev/ttyUSB0
+export BAUD=115200   
+#export BAUD=57600
+#export FREQ=25M
+export NUM_TRACES=1000
+
+export CORE=rocket-xdivinsa
+
+TF_V="AESEnc"
+EX_V=(aes-enc)
+XD_V=(6     )
+
+echo $CORE
+echo $NUM_TRACES
+
+
+
+cnt=0 
+for TF in $TF_V; do
+	export T_FUNC=${TF}
+	echo
+	echo "For Function: ${T_FUNC} ..."
+	echo
+	sed -i 's/^scope_cfg_trace_channel.*/scope_cfg_trace_channel B/g' ${XDI_HOME}/flow/acquisition/gather-t-func-${T_FUNC}-ttest.txt
+    mkdir -p ${XDI_HOME}/work/TTestData-TimeEva/
+
+	make -B sass-${EX_V[$cnt]} XD=" "
+    make program-fpga  
+#    make t-func-verify PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC
+    make t-func-ttest  PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC NUM_TRACES=$NUM_TRACES
+    mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-TimeEva/ExeTime_${CORE}_${TF,,}_BL.svg
+	echo	
+	echo
+	make -B sass-${EX_V[$cnt]}  XD="-DXDIVINSA=${XD_V[$cnt]}"
+    make program-fpga
+#    make t-func-verify PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC
+    make t-func-ttest  PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC NUM_TRACES=$NUM_TRACES
+    mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-TimeEva/ExeTime_${CORE}_${TF,,}_t${XD_V[$cnt]}.svg
+    cnt=$(( $cnt + 1 ))
+done
+
+
+

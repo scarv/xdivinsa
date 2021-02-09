@@ -1,0 +1,36 @@
+
+# Make sure that everything is connected and working
+connection_test
+connection_info
+
+# Open a connection to the scope
+scope_open
+
+# Configure the scope trigger signal:
+#   Channel B, 100ms timeout, 1.0V threshold, Rising edge
+scope_cfg_trigger B 100 1.0 Rising
+
+# Configure the scope capture channels
+scope_cfg_channel A 50e-3 DC
+scope_cfg_channel B 5     DC
+
+# Set the channel which the power traces come from
+scope_cfg_trace_channel A
+
+# Define t_func 
+t_func_def XdiXor
+
+# Capture the trace sets for t-test on xdivinsa
+#    for 50M  sampling rate 125MHz, 700 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets
+#t_func_ttest_acq 125e6 700 8 1000 $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs
+#    for 50M  sampling rate 250MHz, 700 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets 
+t_func_ttest_acq 250e6 270 8 $NUM_TRACES $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs
+
+
+# Evaluate the ttest sets
+evaluate_ttest $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs $XDI_HOME/work/tt.svg
+
+# Disconnect and exit
+scope_close
+disconnect
+exitmk

@@ -1,0 +1,43 @@
+#!/bin/bash
+export PORT=/dev/ttyUSB0
+export BAUD=115200   
+#export BAUD=57600
+#export FREQ=25M
+export NUM_TRACES=10000
+export T_FUNC=Speck
+
+export CORE=picorv-xdivinsa
+
+IMPL_V="d0"
+XD_V="2 3 4"
+
+echo $CORE
+echo $T_FUNC
+
+
+sed -i 's/^scope_cfg_trace_channel.*/scope_cfg_trace_channel A/g' ${XDI_HOME}/flow/acquisition/gather-t-func-${T_FUNC}-ttest.txt
+
+echo "For Xdivinsa ..."
+for T in $XD_V; do
+    mkdir -p ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_t${T,,}
+	make -B sass-speck XD="-DXDIVINSA=$T"
+    make program-fpga
+    make t-func-verify PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC
+    make t-func-ttest  PORT=$PORT BAUD=$BAUD T_FUNC=$T_FUNC NUM_TRACES=$NUM_TRACES
+    mv ${XDI_HOME}/work/tt_set1.trs ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_t${T,,}/tt_set1_${NUM_TRACES}.trs
+    mv ${XDI_HOME}/work/tt_set2.trs ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_t${T,,}/tt_set2_${NUM_TRACES}.trs
+    mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_t${T,,}/TTest_${CORE}_t${T,,}_${NUM_TRACES}.svg
+done
+
+export NUM_TRACES=10000
+echo "For Baseline ..."
+mkdir -p ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_BL
+make -B sass-speck XD=" "
+make program-fpga
+make t-func-verify PORT=$PORT BAUD=$BAUD
+make t-func-ttest  PORT=$PORT BAUD=$BAUD NUM_TRACES=$NUM_TRACES
+mv ${XDI_HOME}/work/tt_set1.trs ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_BL/tt_set1_${NUM_TRACES}.trs
+mv ${XDI_HOME}/work/tt_set2.trs ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_BL/tt_set2_${NUM_TRACES}.trs
+mv ${XDI_HOME}/work/tt.svg      ${XDI_HOME}/work/TTestData-${T_FUNC}/TTest_${CORE}_BL/TTest_${CORE}_BL_${NUM_TRACES}.svg
+
+

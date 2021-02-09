@@ -153,7 +153,7 @@ def parse_args():
         help="the first sample position in a trace")
     parser.add_argument("--Sn", type=int, default=-1,
         help="the last sample position in a trace")
-    parser.add_argument("--Nd", type=int, default=10000,
+    parser.add_argument("--Nd", type=int, default=100,
         help="Number of traces are used")
     parser.add_argument("--trace_file", type=str,  default='work/traces.trs',
         help="Where the trace files are stored")

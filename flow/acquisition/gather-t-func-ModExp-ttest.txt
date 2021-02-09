@@ -15,7 +15,7 @@ scope_cfg_channel A 50e-3 DC
 scope_cfg_channel B 5     DC
 
 # Set the channel which the power traces come from
-scope_cfg_trace_channel A
+scope_cfg_trace_channel B
 
 # Define t_func 
 t_func_def ModExp 
@@ -24,11 +24,11 @@ t_func_def ModExp
 #    for 50M  sampling rate 125MHz, 270000 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets
 #t_func_ttest_acq 125e6 700 8 1000 $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs
 #    for 50M  sampling rate 250MHz, 770000 samples per traces, resolution of 8 bits, 1000 traces, 2 trace sets 
-t_func_ttest_acq 250e6 150000 8 $NUM_TRACES $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs
+t_func_ttest_acq 250e6 190000 8 $NUM_TRACES $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs
 
 
 # Evaluate the ttest sets
-# evaluate_ttest $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs $XDI_HOME/work/tt.svg
+evaluate_ttest $XDI_HOME/work/tt_set1.trs $XDI_HOME/work/tt_set2.trs $XDI_HOME/work/tt.svg
 
 # Disconnect and exit
 scope_close

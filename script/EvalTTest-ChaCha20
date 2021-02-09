@@ -1,0 +1,44 @@
+#!/bin/bash
+
+export CORE=picorv-xdivinsa
+export T_FUNC=ChaCha20
+IMPL_V="d0"
+
+XD_V="     2     3      4      5"
+S0_V=(  1500  1500   1500   1500)
+SN_V=( 71000 71000  71000  71000)
+
+NT_V="10000"
+
+echo $CORE
+#mkdir -p ${XDI_HOME}/work/TTestData    
+
+echo "For ModExp using Xdivinsa ..."
+cnt=0 
+for T in $XD_V; do
+    for N in $NT_V; do
+        ST='s/^t_func_ttest_eval.*/t_func_ttest_eval '
+        ST+=${N}' '${S0_V[$cnt]}' '${SN_V[$cnt]}' None '
+        ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_t'${T,,}'\/tt_set1_'${N}'.trs '
+        ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_t'${T,,}'\/tt_set2_'${N}'.trs '
+        ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_t'${T,,}'\/tt_plot_'${N}'.svg '
+        ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_t'${T,,}'\/tt_set1_'${N}'.trs/g'
+        sed -i "${ST}" ${XDI_HOME}/flow/acquisition/ttest-eval.txt        
+        make t-func-ttest-eval
+    done
+    cnt=$(( $cnt + 1 ))
+done
+
+echo "For Baseline ..."
+N=10000
+ST='s/^t_func_ttest_eval.*/t_func_ttest_eval '
+ST+=${N}' 3700 71000 None '
+ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_BL\/tt_set1_'${N}'.trs '
+ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_BL\/tt_set2_'${N}'.trs '
+ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_BL\/tt_plot_'${N}'.svg '
+ST+='$XDI_HOME\/work\/TTestData-${T_FUNC}\/TTest_'${CORE}'_BL\/tt_set1_'${N}'.trs/g'
+sed -i "${ST}" ${XDI_HOME}/flow/acquisition/ttest-eval.txt        
+
+make t-func-ttest-eval
+
+

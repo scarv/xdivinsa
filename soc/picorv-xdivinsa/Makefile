@@ -66,7 +66,7 @@ verilog: $(verilog_picorv32) $(rtl_cop) $(make_dir)/system_top_wrapper.v
 testbench: $(work_dir)/$(project_name)/rtl_sources/cop_ise.v $(XDI_HOME)/rtl/xdivinsa.vt
 	#mkdir -p $(work_dir)/rtl_testbench
 	cp -f  $(work_dir)/$(project_name)/rtl_sources/cop_ise.v $(work_dir)/rtl_testbench
-	#cp -f  $(XDI_HOME)/rtl/xdivinsa.vt                           $(work_dir)/rtl_testbench/cop_ise_tb.v
+	cp -f  $(XDI_HOME)/rtl/xdivinsa.vt                           $(work_dir)/rtl_testbench/cop_ise_tb.v
 	iverilog -g2012 -o $(work_dir)/rtl_testbench/isim -s cop_ise_tb $(work_dir)/rtl_testbench/cop_ise.v $(work_dir)/rtl_testbench/cop_ise_tb.v
 	vvp -l $(work_dir)/rtl_testbench/simlog $(work_dir)/rtl_testbench/isim +WAVES=$(work_dir)/rtl_testbench/tbwaveform.vcd 
 .PHONY: testbench

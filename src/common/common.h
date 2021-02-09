@@ -57,4 +57,23 @@ void clear_trigger();
 
 void uart_init(); 
 
+#define SET_TRIGGER asm volatile (         \
+        "la	t5, %0  \n\t"                                      \
+        "li	    t6,  1       \n\t"                                      \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "sw     t6,0(t5)    \n\t"                                       \
+        "nop\n\t "               \
+        : : "i" (GPIO_BASE): "t5", "t6" );
+
+#define CLR_TRIGGER asm volatile (         \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        "la	t5, %0  \n\t"                                \
+        "sw	    zero, 0(t5)  \n\t"                                      \
+        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
+        : : "i" (GPIO_BASE) : "t5", "t6" );
+
 #endif

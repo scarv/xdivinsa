@@ -2,6 +2,9 @@
 #define XDiVINSA_H
 #include <stdint.h>
 
+#define XD_RDN(r) asm volatile     (" xdirdn   %0, %1    \n\t" :"=r" (r) : "r" (r)); 
+
+
 #define STR1(x) #x
 #define STR(x) STR1(x)
 #define EXTRACT(a, size, offset) (((~(~0 << size) << offset) & a) >> offset)
@@ -114,41 +117,5 @@
 #define CiMult_f1t2(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+2)<<3 + 1 + 4)
 #define CiMult_f1t3(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+3)<<3 + 1 + 4)
 #define CiMult_f1t4(m1, m0, op1, op2)  ROCC_INST1(XCi, m1, m0, op1, op2, (8+4)<<3 + 1 + 4)
-
-
-#define SET_TRIG asm volatile (         \
-        "addi   sp, sp, -16  \n\t"                                      \
-       	"sw	    t5, 12(sp)   \n\t"                                      \
-       	"sw	    t6,  8(sp)   \n\t"                                      \
-        "lui	t5, 0x40000  \n\t"                                      \
-        "li	    t6,  1       \n\t"                                      \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "sw     t6,0(t5)    \n\t"                                       \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        : : );
-
-#define CLR_TRIG asm volatile (         \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "lui	t5, 0x40000  \n\t"                                      \
-        "sw	    zero, 0(t5)  \n\t"                                      \
-       	"lw	    t5,  12(sp)  \n\t"                                      \
-       	"lw	    t6,   8(sp)  \n\t"                                      \
-        "addi   sp, sp, 16   \n\t"                                      \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        "nop\n\t   nop\n\t   nop\n\t   nop\n\t   nop\n\t"               \
-        : : );
 
 #endif  

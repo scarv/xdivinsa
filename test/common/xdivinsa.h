@@ -2,6 +2,10 @@
 #define XDiVINSA_H
 #include <stdint.h>
 
+#define XD_ADD(r,a,b) asm volatile (" xdi3add   %0, %1, %2\n\t" :"=r" (r) : "r" (a), "r" (b)); 
+#define XD_XOR(r,a,b) asm volatile (" xdi3xor   %0, %1, %2\n\t" :"=r" (r) : "r" (a), "r" (b)); 
+#define XD_RDN(r) asm volatile     (" xdirdn   %0, %1    \n\t" :"=r" (r) : "r" (r)); 
+
 #define STR1(x) #x
 #define STR(x) STR1(x)
 #define EXTRACT(a, size, offset) (((~(~0 << size) << offset) & a) >> offset)

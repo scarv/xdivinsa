@@ -4,7 +4,8 @@ sass_dir ?= $(abspath ../../external/fw-acquisition)
 LIBSCARV ?= /home/thinhpham/Documents/SCARV/sw-libscarv
 
 CORE ?= rocket-xdivinsa
-XD ?= -DXDIVINSA -DXDIVINSA_T4
+#XD ?= -DXDIVINSA -DXDIVINSA_T4
+XD ?= -DXDIVINSA=2
 
 CONF += $(XD)
 CONF += -DTTEST_T1

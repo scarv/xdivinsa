@@ -4,7 +4,7 @@ connection_test
 connection_info
 
 # Define t_func 
-t_func_def AES 
+t_func_def XdiAdd
 
 # Call t-function
 t_func_verf

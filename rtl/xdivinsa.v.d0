@@ -1,6 +1,7 @@
 //Diversifying instruction design 0 Implementing baseline of time varied instruction
 module cop_ise #( 
 parameter [6:0] CUSOPCODE = 7'b0001011,   // custom 0 is used by default
+parameter 		TRNGNoise = 1,  		  // 1: Use TRNG as noise source while delaying
 parameter 		TB =  0 				  // 1: Use for testbench to verify the control interface
 ) 
 (
@@ -29,29 +30,13 @@ wire isopcode= (cop_insn[6:0] == CUSOPCODE);
 wire       op_valid = cop_valid && isopcode;
 wire [6:0] funct    = cop_insn[31:25];
 
-/*
-reg [6:0]  funct_lat;
-always@(posedge cop_clk) begin
-    if (cop_rst) begin
-        funct_lat    <= 7'd0;
-    end    
-    else if (op_valid) begin
-        funct_lat    <= funct;   
-    end
-end
-*/
-//wire doAddi = (funct[2:0] == 3'b000)||(funct[2:0] == 3'b100);
-//wire doMult = (funct[2:0] == 3'b001)||(funct[2:0] == 3'b101);
 wire doAddi = (funct[2:0] == 3'b100);
-wire doMult = (funct[2:0] == 3'b101);
 wire doXori = (funct[2:0] == 3'b110);
 wire rdrand = (funct[2:0] == 3'b010);
-wire rdhigh = (funct[2:0] == 3'b111);
 
 wire [31:0] xori;
-wire [32:0] addi;
-wire [63:0] mult;
-wire [63:0] arthres;
+wire [31:0] addi;
+wire [31:0] arthres;
 
 
 //data-path ==========================================
@@ -59,12 +44,12 @@ wire [63:0] arthres;
 
 }*/
 
-reg         trn_gen;
+wire        trn_gen;
 wire        trn_rdy;
 wire [7:0]  randnum;
 generate
     if (TB==0) begin: es_trng_gen
-		trng_reg #(.W(8), .RI(8), .O(3)) trng_ins (
+		trng_reg #(.W(8), .RI(4), .O(3)) trng_ins (
     		.clk(cop_clk),
     		.rst(cop_rst),
 		    .gen(trn_gen),
@@ -106,18 +91,29 @@ generate
  		assign randnum = randnum_sim;
     end  
 endgenerate
+
+// PRNG for dummy operations ==========================================
+wire           nondeter_bit = ^randnum;
+wire  [31:0]   prng;
+
+lfsr32  prng_ins(
+    .clk(       cop_clk     ),      
+    .rst(       cop_rst     ),   
+    .update(    TRNGNoise   ), 
+    .extra_tap( nondeter_bit), // Additional seed bit, possibly from TRNG.
+    .prng(      prng        )  // PRNG value.
+    );
+//=====================================================================
     
-//reg  [31:0]  artran; //random number for arith. calculation masking
-reg  [31:0]  ip11, ip21;
-wire [31:0]  op1mask, op2mask;
+reg  [31:0]  opr_ran;
+wire [31:0]  opr_lhs, opr_rhs;
 
-
-assign op1mask = ip11;
-assign op2mask = ip21;
-assign xori    = op1mask ^ op2mask;
-assign addi    = op1mask + op2mask;
-assign mult    = op1mask * op2mask;
-assign arthres = (doXori)? {{32{1'b0}},xori} : (doAddi)?{{31{1'b0}},addi}:(doMult)?mult:64'd0;
+assign opr_lhs = cop_rs1;
+assign opr_rhs = opr_ran;
+assign xori    = opr_lhs ^ opr_rhs;
+assign addi    = opr_lhs + opr_rhs;
+//assign mult    = op1mask * op2mask;
+assign arthres = (doXori)? xori : (doAddi)? addi:32'd0;
 //====================================================
 
 //control-unit =======================================
@@ -156,134 +152,47 @@ digraph G {
 }
 */
 wire       ranexp;  //random timing 
-
-reg [63:0] resreg;
-reg        resval;
-
+reg [31:0] resreg;
 
 localparam IDLE    = 4'b0000;
 localparam RDNGEN  = 4'b0001;
-localparam RDNFIN  = 4'b0010;
-localparam ARTCAL1 = 4'b0011;
-localparam ARTCAL2 = 4'b0100;
-localparam ARTCAL3 = 4'b0110;
-localparam ARTCAL3T= 4'b0111;
-localparam ARTCAL4 = 4'b1000;
-localparam ARTCAL4T= 4'b1001;
-localparam ARTCAL5 = 4'b1010;
-localparam ARTCAL5T= 4'b1011;
-localparam ARTFIN_T= 4'b1100;
-localparam ARTFIN  = 4'b1101;
-
-localparam RDHIGH  = 4'b1110;
+localparam ARTCAL1 = 4'b0010;
+localparam ARTCAL2 = 4'b0011;
+localparam ARTCAL3 = 4'b0100;
+localparam SDONE   = 4'b0101;
 
 reg [3:0] ctl_state;
 always @(posedge cop_clk)
-	if (cop_rst) begin
-		ctl_state <= IDLE;
-//        artran  <= 32'd0;
-		resreg  <= 64'd0;
-		end
+	if (cop_rst) 	ctl_state <= IDLE;
 	else
 		case (ctl_state)
-        IDLE :  if (op_valid & rdrand)
-            	    ctl_state    <= RDNGEN;
-                else if (op_valid & rdhigh) begin
-                    ctl_state    <= RDHIGH;
-                    resreg[31:0] <= resreg[63:32];
-                    //resreg[31:0] <= 32'hAAAAAAAA;
-                    end
-                else if (op_valid & (doXori|doAddi|doMult)) begin
-					ctl_state    <= ARTCAL1;                    
-//					if (trn_rdy) artran  <= {24'd0,randnum};
-					end
-                else 
-                    ctl_state    <= IDLE;
-        RDHIGH :    ctl_state    <= IDLE;          
-		RDNGEN : if (trn_rdy) begin
-		            ctl_state    <= RDNFIN;
-		            resreg[31:0] <= {24'd0,randnum};
-		         end
-        RDNFIN :    ctl_state    <= IDLE;           
-        ARTCAL1: //if (funct_lat[2]==1'b1)                   // executing random delay time require new random number.
-                 if (funct[6]==1'b1)
-                 begin
-                    if (trn_rdy) begin
-//					    artran       <= {24'd0,randnum};
-                        ctl_state    <= ARTCAL3T;                    
-                        resreg       <= 64'd0;
-                        end
-                    end 
-                 else begin
-                    ctl_state    <= ARTCAL3T;
-                    resreg       <= 64'd0;
-                 end
-        ARTCAL3T:   ctl_state    <= (ranexp)? ARTCAL3 : ARTCAL3T;          
-        ARTCAL3: begin
-                    ctl_state    <= ARTFIN;		
-                    resreg       <= arthres;
-                 end  
-        ARTFIN :    ctl_state    <= IDLE; 
+        IDLE :      ctl_state <= (op_valid & rdrand) ?          RDNGEN:
+								 (op_valid & (doXori|doAddi)) ? ARTCAL1: 
+																IDLE;                    
+		RDNGEN : 	ctl_state <= SDONE;
+        ARTCAL1:    ctl_state <= ARTCAL2;
+
+        ARTCAL2:    ctl_state <= (ranexp)? ARTCAL3 : ARTCAL2;          
+        ARTCAL3:    ctl_state <= SDONE;		
         
-        default : begin  // Fault Recovery
-            ctl_state <= IDLE;
-//            artran  <= 32'd0;
-	   	    resreg  <= 64'd0;
-            end
-         endcase
-         
-always @(*)
-    case (ctl_state)
-        IDLE : begin
-            resval    <= 1'b0;
-            //trn_gen   <= (op_valid & (rdrand|((doAddi|doMult)&funct[2])));
-            trn_gen   <= (op_valid & (rdrand|((doXori|doAddi|doMult)&funct[6])));
-            end
-        RDHIGH : begin
-            resval    <= 1'b1;
-            trn_gen   <= 1'b0;
-            end
-		RDNGEN : begin
-            resval    <= 1'b0;
-			trn_gen   <= 1'b1;
-            end
-        RDNFIN : begin
-			resval    <= 1'b1;
-			trn_gen   <= 1'b0;
-            end
-        ARTCAL1: begin
-            resval    <= 1'b0;
-            // trn_gen   <= funct_lat[2];   // executing random delay time require new random number.
-            trn_gen   <= 1'b1; 
-            end         
-        ARTCAL3T: begin
-            resval    <= 1'b0;
-            trn_gen   <= 1'b0;
-            end
-        ARTCAL3: begin
-            resval    <= 1'b0;
-            trn_gen   <= 1'b0;
-            end	  
-        ARTFIN : begin
-            resval    <= 1'b1;
-            trn_gen   <= 1'b0;
-            end
-        default : begin  // Fault Recovery
-		    resval    <= 1'b0;
-            trn_gen   <= 1'b0;
-            end
-    endcase
+        SDONE :     ctl_state <= IDLE; 
+                
+        default :   ctl_state <= IDLE;
+        endcase
 
 always @(posedge cop_clk)
-	if (cop_rst) begin
-	       ip11 <= 32'd0;                      
-	       ip21 <= 32'd0;                     
-	   end
-	else if (ctl_state == ARTCAL3T) 
-	   if (ranexp==1'b1) begin
-	       ip11 <= cop_rs1;         //op1;                       
-	       ip21 <= cop_rs2;         //op2;                        
-	   end
+	if (cop_rst)                   opr_ran <= 32'd0;     
+    else if (ctl_state == ARTCAL2) opr_ran <= (ranexp==1'b1) ? cop_rs2: // waiting a random delay then caculate the result
+	                                          /*dummy values*/ prng;                       
+
+generate 
+  if (TRNGNoise == 1'b1) begin : TRNGNoise_imp         
+    assign 	trn_gen   = 1'b1;
+  end else begin                    : No_TRNGNoise
+    assign 	trn_gen   = (ctl_state == RDNGEN)||(ctl_state == ARTCAL3)||(ctl_state == SDONE);
+  end
+endgenerate
+
 
 // time execution randomising ========================
 //wire [3:0] timopt = funct_lat[6:3];
@@ -308,23 +217,49 @@ always @(posedge cop_clk)
     if (cop_rst)                 timcnt <= 8'h00;
     else if (~timena)            timcnt <= 8'h00;
     else if (timcnt != 8'd0)     timcnt <= timcnt -1'b1;
-    //else if (ctl_state==ARTCAL1) timcnt <= (funct_lat[2]==1'b0) ? timmsk : (timmsk & randnum[ 7: 0]);
-    else if (ctl_state==ARTCAL1) timcnt <= (timmsk & randnum[ 7: 0]);
-       
+    else if (ctl_state==ARTCAL1) timcnt <= (timmsk & randnum[ 7: 0]);       
 
 assign ranexp = (timcnt == 8'h00);         
 //====================================================
 
 reg cop_wait;
 always@(posedge cop_clk) begin
-    if (cop_rst)                        cop_wait <= 1'b0;
-    else if (ctl_state == ARTCAL3T) 	cop_wait <= 1'b1;
-    else                                cop_wait <= 1'b0;
+    if (cop_rst)                     cop_wait <= 1'b0;
+    else if (ctl_state == ARTCAL2) 	 cop_wait <= 1'b1;
+    else                             cop_wait <= 1'b0;
 end
 
-assign cop_ready = resval;
+always@(posedge cop_clk) begin
+    if (cop_rst)                        resreg <= 32'd0;
+    else if (ctl_state == RDNGEN) 		resreg <= {24'd0,randnum};
+    else if (ctl_state == ARTCAL3)      resreg <= arthres;
+end
+
+assign cop_ready = (ctl_state == SDONE);
 
 assign cop_rd = resreg[31:0];
-assign cop_wr = resval;
+assign cop_wr = cop_ready;
+
+endmodule
+
+module lfsr32 #(
+parameter RESET_VALUE = 32'h6789ABCD
+)(
+input  wire        clk        , // Clock to update PRNG
+input  wire        rst        , // Syncrhonous active high reset.
+input  wire        update     , // Update PRNG with new value.
+input  wire        extra_tap  , // Additional seed bit, possibly from TRNG.
+output reg  [31:0] prng         // Current PRNG value.
+);
+
+wire        n_prng_lsb =  prng[31] ~^ prng[21] ~^ prng[ 1] ~^ prng[ 0] ^
+                          extra_tap ;
+
+wire [31:0] n_prng     = {prng[31-1:0], n_prng_lsb};
+
+always @(posedge clk) begin
+    if     (rst)       prng <= RESET_VALUE;
+    else if( update  ) prng <= n_prng;
+end
 
 endmodule

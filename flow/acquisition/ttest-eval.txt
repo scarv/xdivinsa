@@ -1,6 +1,6 @@
 # Evaluate the ttest sets
 
-t_func_ttest_eval 10000 0 190000 None $XDI_HOME/work/TTestData-ModExp-SF/TTest_rocket-xdivinsa_t5/tt_set1_10000.trs $XDI_HOME/work/TTestData-ModExp-SF/TTest_rocket-xdivinsa_t5/tt_set2_10000.trs $XDI_HOME/work/TTestData-ModExp-SF/TTest_rocket-xdivinsa_t5/tt_None_10000.svg $XDI_HOME/work/TTestData-ModExp-SF/TTest_rocket-xdivinsa_t5/tt_set1_10000.trs
+t_func_ttest_eval 100000 25 170 None $XDI_HOME/work/TTestData-XdiXor/TTest_picorv-xdivinsa_BL/tt_set1_1000000.trs $XDI_HOME/work/TTestData-XdiXor/TTest_picorv-xdivinsa_BL/tt_set2_1000000.trs $XDI_HOME/work/TTestData-XdiXor/TTest_picorv-xdivinsa_BL/tt_plot_100000.svg $XDI_HOME/work/TTestData-XdiXor/TTest_picorv-xdivinsa_BL/tt_set1_1000000.trs
 
 #t_func_ttest_eval 50000 680 1500 None $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/tt_set1_50000.trs $BSX_HOME/work/TTestData/TTest_25M_xdivinsa_d0t4_nonzero/#tt_set2_50000.trs $BSX_HOME/work/tt_10000.svg
 exit

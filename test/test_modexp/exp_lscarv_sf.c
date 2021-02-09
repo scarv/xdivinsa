@@ -84,7 +84,9 @@ int riscv_main() {
         mrz_mul( &ctx, r, x, ctx.rho_2 );
         set_trigger();
         t_beg 	= rdcycle();
+
         exp_sf( &ctx, r, r, k, l_k );
+
         t_end 	= rdcycle();
         clear_trigger();
         mrz_mul( &ctx, r, r, ctx.rho_0 );

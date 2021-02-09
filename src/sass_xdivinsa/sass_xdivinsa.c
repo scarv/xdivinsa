@@ -27,10 +27,6 @@ typedef uint64_t dlimb_t;
 void mul0(limb_t * r_1, limb_t* r_0, limb_t e, limb_t f){
     SET_TRIG
 	CiMult_f1(*r_1, *r_0, e, f);
-//  dlimb_t   t;
-//	CiMult_f2(t, e, f);
-//  *r_0 =   ( limb_t )( t >> 0                    );      
-//  *r_1 =   ( limb_t )( t >> (8*sizeof( limb_t )) );      
     CLR_TRIG
 }
 #elif XDIVINSA_T1

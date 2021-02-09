@@ -3,7 +3,7 @@ hal_dir  ?= $(abspath ../../soc/$(CORE)/hal)
 LIBSCARV ?= /home/thinhpham/Documents/SCARV/sw-libscarv
 
 CORE ?= rocket-xdivinsa
-XD ?= -DXDIVINSA -DXDIVINSA_T3
+XD ?= -DXDIVINSA=4
 
 CONF += $(XD) -DTEST_DUMP
 
@@ -23,7 +23,7 @@ INC_DIRS =  -I../common  \
             -I$(LIBSCARV)/build/riscv/include 
 
 LLIB = $(LIBSCARV)/build/riscv/lib/libscarv.a
-EXE  ?=exp_lscarv_lr
+EXE  ?=exp_lscarv_bml
 
 
 SRCS = ../common/common.c \
