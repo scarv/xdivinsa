@@ -4,9 +4,9 @@ export CORE=picorv-xdivinsa
 export T_FUNC=Speck
 IMPL_V="d0"
 
-XD_V="     2     3      4"
-S0_V=(   170   170    170)
-SN_V=( 17000 17000  17000)
+XD_V="     2     3  "
+S0_V=(   170   170  )
+SN_V=( 17000 17000  )
 
 NT_V="10000"
 

@@ -15,7 +15,7 @@ scope_cfg_channel A 50e-3 DC
 scope_cfg_channel B 5     DC
 
 # Set the channel which the power traces come from
-scope_cfg_trace_channel B
+scope_cfg_trace_channel A
 
 # Define t_func 
 t_func_def Speck
