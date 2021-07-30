@@ -67,13 +67,14 @@ The technique is realised by injecting random delay and dummy operations in betw
     ```sh
       export CORE=[picorv-xdivinsa/rocket-xdivinsa]
     ```
-A
+
   - Build the Vivado project for the FPGA implementation of the XDivinsa-supporting RISC-V processor system. 
  
     ```sh
       make verilog
       make fpga-project
     ```
+
   - Compile the FPGA implementation to generate bitstream. 
  
     ```sh
@@ -84,7 +85,7 @@ A
 
   - Do the [board setup](#Board-setup)
 
-  - Open serial port via /dev/ttyUSB in another terminal to monitor the program running, e.g.,
+  - Open a serial port via /dev/ttyUSB in another terminal to monitor the program running, e.g.,
 
     ```sh
     microcom -p /dev/ttyUSB0 -s 115200
