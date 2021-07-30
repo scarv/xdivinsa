@@ -34,6 +34,8 @@ extern void puthex64(uint64_t tp);
 //
 extern void test_dump( char* id, uint32_t * x, int l_x );
 
+unsigned int uint2str(unsigned long long int n, char *st);
+
 //! Sample the clock cycle counter (used for timing checks)
 uint32_t rdcycle(); 
 
@@ -57,6 +59,27 @@ void clear_trigger();
 
 void uart_init(); 
 
+#ifdef rocket
+#define MEASURE(id, stmt) {                                      \
+    uint32_t  id ## _cycle_pre,  id ## _cycle_post;              \
+                                                                 \
+    asm volatile("csrr %0, mcycle \n":"=r" (id ## _cycle_pre));  \
+    stmt;                                                        \
+    asm volatile("csrr %0, mcycle \n":"=r" (id ## _cycle_post)); \
+                                                                 \
+    id = (id ## _cycle_post - id ## _cycle_pre);                 \
+  }
+#else
+#define MEASURE(id, stmt) {                                    \
+    uint32_t  id ## _cycle_pre,  id ## _cycle_post;            \
+                                                               \
+    asm volatile("rdcycle   %0" : "=r" (id ## _cycle_pre));    \
+    stmt;                                                      \
+    asm volatile("rdcycle   %0" : "=r" (id ## _cycle_post));   \
+                                                               \
+    id = (id ## _cycle_post - id ## _cycle_pre);               \
+  }
+#endif
 #define SET_TRIGGER asm volatile (         \
         "la	t5, %0  \n\t"                                      \
         "li	    t6,  1       \n\t"                                      \

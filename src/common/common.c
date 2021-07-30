@@ -47,6 +47,43 @@ void puthex64(uint64_t tp) {
     puthex(a);
 }
 
+unsigned int uint2str(unsigned long long int n, char *st){
+	unsigned int len;
+	unsigned int temp;
+	short i;
+	len = 0;
+	
+    if (n == 0) {
+	st[len]='0'; len++;
+	st[len]=0;
+	return len;
+    }
+
+	for(temp=n;temp!=0;temp/=10,len++);    
+    
+	for(i=len-1,temp=n;i>=0;i--) {
+		st[i]=(temp%10)+0x30;
+      	temp/=10;
+    }
+
+    n=n>>32;
+	if (n > 0){
+    	st[len]='+'; len++;
+		int j=len;
+		for(temp=n;temp!=0;temp/=10,len++);    
+    
+		for(i=len-1,temp=n;i>=j;i--) {
+			st[i]=(temp%10)+0x30;
+      		temp/=10;
+    	}
+    
+		st[len]='*'; len++;
+		st[len]='2'; len++; st[len]='^'; len++; st[len]='3'; len++;st[len]='2'; len++;
+	}
+	st[len]=0;
+	return len;
+}
+
 void test_dump( char* id, uint32_t * x, int l_x ) {
   putstr(id);
   putstr(" = long( '");

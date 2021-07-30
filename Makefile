@@ -2,100 +2,55 @@ ifndef XDI_HOME
     $(error "Please run 'source ./bin/source.me.sh' to setup the project workspace")
 endif
 
-ifndef BSX_HOME
-$(error Please set environment for Sakura-X board support package)
-endif
-
-export work_dir = $(XDI_HOME)/work
+export work_dir     = $(XDI_HOME)/work
+export BOARD	   ?= sakura-x
+export CORE	       ?= picorv-xdivinsa
+export prog_mem     = $(work_dir)/$(BOARD)-$(CORE)-imp/prog-bin/prog.mem
 
 export PORT        ?= /dev/ttyUSB0
 export BAUD        ?= 115200   
-#export BAUD       ?= 57600
 export NUM_TRACES  ?= 1000
 export T_FUNC      ?= AES
-export SASS_RIG    ?=$(abspath ./external/fw-acquisition)
+export SASS_RIG    ?= $(abspath ./external/fw-acquisition)
+export TraceFile   ?= traces.trs
 
-CORE	?= rocket-xdivinsa
-TARGET	= sakura-x
+.PHONY: toolchain
+toolchain:
+	$(XDI_HOME)/toolchain/clone.sh
+	$(XDI_HOME)/toolchain/build-xdi-rv32.sh
 
-soc_dir ?= $(XDI_HOME)/soc
-
-prog_mem = $(work_dir)/$(TARGET)-$(CORE)-imp/prog-bin/prog.mem
-
-
-TraceFile ?= traces.trs
-
-.PHONY: project-soc vivado bitstream verilog acquisition-firmware bit-update program-fpga
+.PHONY: fpga-project vivado bitstream verilog acquisition-firmware bit-update program-fpga
 verilog:
-	$(MAKE) -C $(BSX_HOME) verilog          work_dir=$(work_dir) 
-project-soc:
-	$(MAKE) -C $(BSX_HOME) project-soc      work_dir=$(work_dir) TARGET=$(TARGET)
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) verilog          work_dir=$(work_dir) 
+fpga-project:
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) project          work_dir=$(work_dir) 
 vivado:
-	$(MAKE) -C $(BSX_HOME) vivado           work_dir=$(work_dir) 
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) vivado           work_dir=$(work_dir) 
 bitstream:
-	$(MAKE) -C $(BSX_HOME) bitstream        work_dir=$(work_dir)
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) bitstream        work_dir=$(work_dir)
 bit-update:
-	$(MAKE) -C $(BSX_HOME) bit-update       work_dir=$(work_dir)
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) bit-update       work_dir=$(work_dir)
 program-fpga:
-	$(MAKE) -C $(BSX_HOME) program-fpga     work_dir=$(work_dir)
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE) program-updated  work_dir=$(work_dir)
 
-tb:
-	$(MAKE) -C $(soc_dir)/$(CORE) testbench work_dir=$(work_dir)
 
+.PHONY: helloworld test-xdivinsa
 helloworld:
-	$(MAKE) -C $(BSX_HOME)/examples/helloworld all CORE=$(CORE) work_dir=$(work_dir)/helloworld hal_dir=$(soc_dir)/$(CORE)/hal
+	$(MAKE) -C $(XDI_HOME)/src/helloworld all CORE=$(CORE) work_dir=$(work_dir)/helloworld hal_dir=$(XDI_HOME)/fpga/soc/$(CORE)/hal
 	{ echo '@00000000'; cat $(work_dir)/helloworld/helloworld-$(CORE).hex;} >$(prog_mem)
-led-flash:
-	$(MAKE) -C $(BSX_HOME)/examples/led_flash all CORE=$(CORE) work_dir=$(work_dir)/led_flash hal_dir=$(soc_dir)/$(CORE)/hal
-	{ echo '@00000000'; cat $(work_dir)/led_flash/led_flash-$(CORE).hex;} >$(prog_mem)
 
 test-xdivinsa:
-	$(MAKE) -C $(XDI_HOME)/test/test_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/test_xdivinsa
+	$(MAKE) -C $(XDI_HOME)/src/test_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/test_xdivinsa hal_dir=$(XDI_HOME)/fpga/soc/$(CORE)/hal
 	{ echo '@00000000'; cat $(work_dir)/test_xdivinsa/test_xdivinsa-$(CORE).hex;} >$(prog_mem)
 
-sass-xdiadd:
-	$(MAKE) -C $(XDI_HOME)/src/sass_xdiadd all CORE=$(CORE) work_dir=$(work_dir)/sass_xdiadd  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_xdiadd/sass_xdiadd-$(CORE).hex;} >$(prog_mem)
-sass-xdixor:
-	$(MAKE) -C $(XDI_HOME)/src/sass_xdixor all CORE=$(CORE) work_dir=$(work_dir)/sass_xdixor  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_xdixor/sass_xdixor-$(CORE).hex;} >$(prog_mem)
-sass-modexp:
-	$(MAKE) -C $(XDI_HOME)/src/sass_modexp all CORE=$(CORE) work_dir=$(work_dir)/sass_modexp  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_modexp/sass_modexp-$(CORE).hex;} >$(prog_mem)
-sass-aes-enc:
-	$(MAKE) -C $(XDI_HOME)/src/sass_aes_enc all CORE=$(CORE) work_dir=$(work_dir)/sass_aes_enc  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_aes_enc/sass_aes_enc-$(CORE).hex;} >$(prog_mem)
-sass-chacha20:
-	$(MAKE) -C $(XDI_HOME)/src/sass_chacha20 all CORE=$(CORE) work_dir=$(work_dir)/sass_chacha20  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_chacha20/sass_chacha20-$(CORE).hex;} >$(prog_mem)
-sass-speck:
-	$(MAKE) -C $(XDI_HOME)/src/sass_speck all CORE=$(CORE) work_dir=$(work_dir)/sass_speck  sass_dir=$(SASS_RIG)
-	{ echo '@00000000'; cat $(work_dir)/sass_speck/sass_speck-$(CORE).hex;} >$(prog_mem)
-
-
-t-func-verify:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-verify T_FUNC=$(T_FUNC)
-t-func-traces:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition capture-t-func-traces T_FUNC=$(T_FUNC)
-t-func-ttest:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition capture-t-func-ttest T_FUNC=$(T_FUNC)
-t-func-ttest-eval:
-	$(MAKE) -C $(XDI_HOME)/flow/acquisition t-func-ttest-eval T_FUNC=$(T_FUNC)
-
-plot_traces:
-	python3 flow/acquisition/pysrc/plot_traces.py --trace_file $(work_dir)/$(TraceFile) &
-
-.PHONY: helloworld led-flash test-cop
 #--------------------------------------------------------------------
 # Clean up
 #--------------------------------------------------------------------
 clean: clean-soft clean-proj
 clean-soft:
-	$(MAKE) -C $(BSX_HOME)/examples/helloworld clean
-	$(MAKE) -C $(BSX_HOME)/examples/led_flash clean
+	$(MAKE) -C $(XDI_HOME)/src/helloworld    clean
+	$(MAKE) -C $(XDI_HOME)/src/test-xdivinsa clean
 clean-proj:
-	$(MAKE) -C $(BSX_HOME) clean
-clean-hard:
-	$(MAKE) -C $(BSX_HOME) cleanall
-cleanall: clean clean-hard
-.PHONY: clean clean-soft clean-proj clean-hard cleanall
+	$(MAKE) -C $(XDI_HOME)/fpga/soc/$(CORE)  cleanall
+cleanall: clean clean-proj 
+.PHONY: clean clean-soft clean-proj cleanall
