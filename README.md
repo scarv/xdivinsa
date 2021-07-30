@@ -5,6 +5,7 @@ This repository contains a frame-work to evaluate **XDivinsa** based on the inst
 **XDivinsa** is a combination of a hardware-based hiding technique and diversified ISE.
 The technique is realised by injecting random delay and dummy operations in between duration of instruction execution based on hardware diversification. This makes the instruction performance diversifying in time and power dimention.
 **XDivinsa** can be effectively, automatically integrated into cryptosystem without needing cryptographic algorithm experts to mitigate side-channel analysis attacks.
+The work is published in [1].
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -113,7 +114,8 @@ The system has a serial port to communicate to the host computer.
 A USB-UART cable (like Adafruit USB to TTL Serial Cable) is needed to connect directly from a USB port of the host computer to the pins of the serial port on FPGA board. 
 
 ## References and Useful links:
-- [1] Yang, B., Rožic, V., Grujic, M., Mentens, N., & Verbauwhede, I. (2018). ES-TRNG: A High-throughput, Low-area True Random Number Generator based on Edge Sampling. IACR Transactions on Cryptographic Hardware and Embedded Systems, 2018(3), 267-292. https://doi.org/10.13154/tches.v2018.i3.267-292
+- [1] Thinh H. Pham, Ben Marshall, Alexander Fell, Siew-Kei Lam, Daniel Page, "XDIVINSA: eXtended DIVersifying INStruction Agent to Mitigate Power Side-Channel Leakage", The 32nd IEEE International Conference on Application-specific Systems, Architectures and Processors (ASAP2021).
+- [2] Yang, B., Rožic, V., Grujic, M., Mentens, N., & Verbauwhede, I. (2018). ES-TRNG: A High-throughput, Low-area True Random Number Generator based on Edge Sampling. IACR Transactions on Cryptographic Hardware and Embedded Systems, 2018(3), 267-292. https://doi.org/10.13154/tches.v2018.i3.267-292
 - [NIST Statistical Test Suite] https://csrc.nist.gov/projects/random-bit-generation/documentation-and-software
 - [AIS31 testsuit] https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Zertifizierung/Interpretationen/AIS_31_testsuit_zip.html
 - [RocketChip Core](https://github.com/freechipsproject/rocket-chip) - The RocketChip core implementation being used in the platform.
