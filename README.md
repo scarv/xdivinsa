@@ -121,3 +121,9 @@ A USB-UART cable (like Adafruit USB to TTL Serial Cable) is needed to connect di
 - [RocketChip Core](https://github.com/freechipsproject/rocket-chip) - The RocketChip core implementation being used in the platform.
 - [Picorv32 Core](https://github.com/cliffordwolf/picorv32) - The picorv32 core implementation being used in the platform.
 - [Sakura-x platform](http://satoh.cs.uec.ac.jp/SAKURA/hardware/SAKURA-X.html) - Sakura-X board homepage
+
+## Acknowledgements
+
+This work has been supported in part
+by EPSRC via grant
+[EP/R012288/1](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/R012288/1) (under the [RISE](http://www.ukrise.org) programme).
