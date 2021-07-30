@@ -62,13 +62,13 @@ The technique is realised by injecting random delay and dummy operations in betw
   
 - Build the FPGA implementation for XDivinsa-RISCV systems.
 
-  - Select A RISC-V base core, i.e., Picorv or Rocket-Chip.
+  - Select a RISC-V base core, i.e., Picorv or Rocket-Chip.
 
     ```sh
       export CORE=[picorv-xdivinsa/rocket-xdivinsa]
     ```
-
-  - Build A Vivado project for the FPGA implementation of the XDivinsa-supporting RISC-V processor system. 
+A
+  - Build the Vivado project for the FPGA implementation of the XDivinsa-supporting RISC-V processor system. 
  
     ```sh
       make verilog
