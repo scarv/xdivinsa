@@ -66,20 +66,20 @@ The work is published in [1].
   - Select a RISC-V base core, i.e., Picorv or Rocket-Chip.
 
     ```sh
-      export CORE=[picorv-xdivinsa/rocket-xdivinsa]
+    export CORE=[picorv-xdivinsa/rocket-xdivinsa]
     ```
 
   - Build the Vivado project for the FPGA implementation of the XDivinsa-supporting RISC-V processor system. 
  
     ```sh
-      make verilog
-      make fpga-project
+    make verilog
+    make fpga-project
     ```
 
   - Compile the FPGA implementation to generate bitstream. 
  
     ```sh
-      make bitstream
+    make bitstream
     ```
 
 - Run the testing software on the FPGA board.
