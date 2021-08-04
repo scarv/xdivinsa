@@ -14,7 +14,7 @@ The work is published in [1].
 ```
 ├── bin                - scripts (e.g., environment configuration)
 ├── fpga               - source code for the FPGA implementation using Vivado
-│   ├── board          - source for supporting a specific board (e.g. sakura-x)
+│   ├── board          - source for supporting a specific board (e.g., sakura-x)
 │   ├── script         - scripts for handling the FPGA bitstream on Vivado
 │   └── soc            - the Vivado projects based on Picorv and Rocketchip SoC.
 ├── rtl                - the implementations of the XDivinsa co-processor.
@@ -51,7 +51,6 @@ The work is published in [1].
     ```sh
     git clone https://github.com/scarv/xdivinsa ./xdivinsa
     cd ./xdivinsa
-    git submodule update --init --recursive
     source bin/source.me.sh
     ```
   
