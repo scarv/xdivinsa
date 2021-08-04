@@ -18,7 +18,7 @@ The work is published in [1].
 │   ├── script         - scripts for handling the FPGA bitstream on Vivado
 │   └── soc            - the Vivado projects based on Picorv and Rocketchip SoC.
 ├── rtl                - the implementations of the XDivinsa co-processor.
-├── csrc               - source code for embedded software
+├── src                - source code for embedded software
 │   ├── common           - shared code resources
 │   ├── helloworld       - source code for the hello-world program.
 │   ├── test-xdivinsa    - source code for verifying the XDivinsa ISE.
