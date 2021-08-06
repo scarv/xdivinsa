@@ -21,6 +21,7 @@ The work is published in [1].
 ├── src                - source code for embedded software
 │   ├── common           - shared code resources
 │   ├── helloworld       - source code for the hello-world program.
+│   ├── test-aes         - source code for the AES case-study.
 │   ├── test-xdivinsa    - source code for verifying the XDivinsa ISE.
 │   └── ...              - ...
 ├── toolchain          - scripts to install the XDivinsa-supporting RISC-V toolchain.
@@ -100,7 +101,18 @@ The work is published in [1].
     make bit-update
     make program-fpga
     ```
+- Build and run the AES case-study on the FPGA board.
 
+  - Build and run the unprotected AES encryption
+    ```sh
+    make build-aes
+    make program-fpga
+    ```
+  - Build and run the protected AES encryption using XDIVINSA
+    ```sh
+    make build-protected-aes
+    make program-fpga
+    ```
 <!--- -------------------------------------------------------------------- --->
 
 ## Board setup
@@ -115,8 +127,6 @@ A USB-UART cable (like Adafruit USB to TTL Serial Cable) is needed to connect di
 ## References and Useful links:
 - [1] Thinh H. Pham, Ben Marshall, Alexander Fell, Siew-Kei Lam, Daniel Page, "XDIVINSA: eXtended DIVersifying INStruction Agent to Mitigate Power Side-Channel Leakage", The 32nd IEEE International Conference on Application-specific Systems, Architectures and Processors (ASAP2021).
 - [2] Yang, B., Rožic, V., Grujic, M., Mentens, N., & Verbauwhede, I. (2018). ES-TRNG: A High-throughput, Low-area True Random Number Generator based on Edge Sampling. IACR Transactions on Cryptographic Hardware and Embedded Systems, 2018(3), 267-292. https://doi.org/10.13154/tches.v2018.i3.267-292
-- [NIST Statistical Test Suite] https://csrc.nist.gov/projects/random-bit-generation/documentation-and-software
-- [AIS31 testsuit] https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Zertifizierung/Interpretationen/AIS_31_testsuit_zip.html
 - [RocketChip Core](https://github.com/freechipsproject/rocket-chip) - The RocketChip core implementation being used in the platform.
 - [Picorv32 Core](https://github.com/cliffordwolf/picorv32) - The picorv32 core implementation being used in the platform.
 - [Sakura-x platform](http://satoh.cs.uec.ac.jp/SAKURA/hardware/SAKURA-X.html) - Sakura-X board homepage

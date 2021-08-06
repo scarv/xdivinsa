@@ -82,7 +82,7 @@ program: $(bitstream)
 #--------------------------------------------------------------------
 search-ramb: $(work_dir)/$(project_name)/prog.mmi
 $(work_dir)/$(project_name)/prog.mmi: $(bitstream)
-	$(VIVADO) -mode batch -source$(XDI_HOME)/fpga/script/search_ramb.tcl -tclargs $(project_name) $(work_dir) > $(work_dir)/$(project_name)/search-ramb.info
+	$(VIVADO) -mode batch -source $(XDI_HOME)/fpga/script/search_ramb.tcl -tclargs $(project_name) $(work_dir) > $(work_dir)/$(project_name)/search-ramb.info
 	python $(XDI_HOME)/fpga/script/mmi_gen.py $(work_dir)/$(project_name)/search-ramb.info $(work_dir)/$(project_name)/prog.mmi 32 32768 $(part)
 
 bit-update: $(work_dir)/$(project_name)/$(project_name).runs/impl_1/system_top_wrapper.new.bit

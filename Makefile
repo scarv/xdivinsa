@@ -42,6 +42,12 @@ helloworld:
 test-xdivinsa:
 	$(MAKE) -C $(XDI_HOME)/src/test_xdivinsa all CORE=$(CORE) work_dir=$(work_dir)/test_xdivinsa hal_dir=$(XDI_HOME)/fpga/soc/$(CORE)/hal
 	{ echo '@00000000'; cat $(work_dir)/test_xdivinsa/test_xdivinsa-$(CORE).hex;} >$(prog_mem)
+build-aes:
+	$(MAKE) -C $(XDI_HOME)/src/test_aes clean all CORE=$(CORE) work_dir=$(work_dir)/test_aes hal_dir=$(XDI_HOME)/fpga/soc/$(CORE)/hal
+	{ echo '@00000000'; cat $(work_dir)/test_aes/test_aes-$(CORE).hex;} >$(prog_mem)
+build-protected-aes:
+	$(MAKE) -C $(XDI_HOME)/src/test_aes clean all CORE=$(CORE) work_dir=$(work_dir)/test_aes hal_dir=$(XDI_HOME)/fpga/soc/$(CORE)/hal XD="-DXDIVINSA=3"
+	{ echo '@00000000'; cat $(work_dir)/test_aes/test_aes-$(CORE).hex;} >$(prog_mem)
 
 #--------------------------------------------------------------------
 # Clean up

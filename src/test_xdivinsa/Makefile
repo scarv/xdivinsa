@@ -19,17 +19,17 @@ all: $(OUTHEX) $(DISASM)
 CCFLAGS+=-Os -O2 -march=rv32im -mabi=ilp32 -ffast-math -nostartfiles -nostdlib -fpie -Wl,-T$(hal_dir)/lscript.ld
 
 $(OUTPUT) : $(SRCS)
-	mkdir -p $(work_dir)
-	$(CC) $(CCFLAGS) $(INC_DIRS) -D$(firstword $(subst -, ,$(CORE))) -D$(word 2, $(subst -, ,$(CORE))) -DXDIVINSA=3 -o $@ $^
+	@mkdir -p $(work_dir)
+	@$(CC) $(CCFLAGS) $(INC_DIRS) -D$(firstword $(subst -, ,$(CORE))) -D$(word 2, $(subst -, ,$(CORE))) -DXDIVINSA=3 -o $@ $^
 	
 $(OUTBIN): $(OUTPUT)
-	$(OBJCOPY) -O binary $< $@
+	@$(OBJCOPY) -O binary $< $@
 
 $(OUTHEX): $(OUTBIN) 
-	od -t x4 -An -w4 -v $< > $@	
+	@od -t x4 -An -w4 -v $< > $@	
 
 $(DISASM) : $(OUTPUT)
-	$(OBJDUMP) -Dt $< > $@
+	@$(OBJDUMP) -Dt $< > $@
 
 clean:
 	rm -rf $(work_dir)
